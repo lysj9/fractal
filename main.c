@@ -156,6 +156,12 @@ int main(int argc, char *argv[])
 //	sort_mass();
 	N_node = N_star - nbin;
 	fractal (N_node,D,mlow,mhigh,star);
+
+	t_end=clock();
+	t_cost=(double)(t_end-t_start)/CLOCKS_PER_SEC;
+	fprintf(stderr,"\ngenerate fractal cluster use %lf seconds...\n",t_cost);
+	t_start=clock();
+
 	double Mnode=0;
 	double Mbin=0;
 	for (i=0;i<N_node;++i) Mnode += star[i].m;
@@ -179,13 +185,16 @@ int main(int argc, char *argv[])
 		generate_mass(nbin,mlow,mhigh,mass);
 		for (i=0;i<nbin;++i) Mbin += mass[i];
 		// position in [pc], velocity in [m/s/VSC]
+		// position and velocity are in binary frame
 		generate_binaries(N_star,nbin,mass,star);
 	}
 	fprintf(stderr,"before eigenevolution: Mnode=%lf, Mbin=%lf, Mtot=%lf\n",Mnode,Mbin,Mnode+Mbin);
 
-	// scale to standard NBODY-UNIT,
+	// scale (node) to standard NBODY-UNIT,
 	// i.e. total energy = -0.25, virial ratio = q
-	Mtot = nbody_scale(N_star,nbin,q,star);
+	int NNBMAX;
+	double RS0;
+	Mtot = nbody_scale(N_node,q,star+2*nbin,&NNBMAX,&RS0);
 	m_mean = Mtot/N_star;
 
 	// get the scale informations (rscale, vscale & tscale)
@@ -235,11 +244,14 @@ int main(int argc, char *argv[])
 	tscale = rscale/vscale*(PC/MYR);
 //	tscale = sqrt(r_virial*r_virial*r_virial/Mtot)*TSC;
 
-	// scale binaries to cluster frame
+	// scale binaries to cluster frame, in NBODY-UNIT
 	for (i=0;i<2*nbin;++i) {
-		star[i].x = star[N_star+i/2].x + star[i].x/rscale;
-		star[i].y = star[N_star+i/2].y + star[i].y/rscale;
-		star[i].z = star[N_star+i/2].z + star[i].z/rscale;
+		// mass in [MSUN]
+		star[i].m /= Mtot;
+		// position in [pc]
+		star[i].x  = star[N_star+i/2].x + star[i].x/rscale;
+		star[i].y  = star[N_star+i/2].y + star[i].y/rscale;
+		star[i].z  = star[N_star+i/2].z + star[i].z/rscale;
 		// generate_binaries returns velocity in [m/s/VSC]
 		star[i].vx = star[N_star+i/2].vx + star[i].vx/v_virial;
 		star[i].vy = star[N_star+i/2].vy + star[i].vy/v_virial;
@@ -248,7 +260,7 @@ int main(int argc, char *argv[])
 
 	t_end=clock();
 	t_cost=(double)(t_end-t_start)/CLOCKS_PER_SEC;
-	fprintf(stderr,"\nuse %lf seconds...\n",t_cost);
+	fprintf(stderr,"\nscale use %lf seconds...\n",t_cost);
 	// output stars
 	for (i=0;i<N_star+nbin;++i){
 //		fprintf(FP,"%d %lf %lf %lf %lf %lf %lf %lf\n",
@@ -261,9 +273,8 @@ int main(int argc, char *argv[])
 	fclose(FP);
 
 	// output NBODY6 input files
-	int NNBMAX;
-	double RS0;
-	output_nbody6(outname,N_star,nbin,r2_sort,seed,r_virial,m_mean,mlow,mhigh,q,&NNBMAX,&RS0);
+//	output_nbody6(outname,N_star,nbin,r2_sort,seed,r_virial,m_mean,mlow,mhigh,q,&NNBMAX,&RS0);
+	output_nbody6(outname,N_star,nbin,r2_sort,seed,r_virial,m_mean,mlow,mhigh,q,NNBMAX,RS0);
 
 	// output read-in informations
 	fprintf(stderr,"\n==== input information: ====\n");

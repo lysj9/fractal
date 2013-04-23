@@ -2,7 +2,8 @@
 #include <stdlib.h>
 #include <math.h>
 
-void output_nbody6(char *outname, int N_star, int nbin, double *r2_sort, int seed, double r_virial, double m_mean, double mlow, double mhigh, double q, int *nnbmax_out, double *rs0_out)
+//void output_nbody6(char *outname, int N_star, int nbin, double *r2_sort, int seed, double r_virial, double m_mean, double mlow, double mhigh, double q, int *nnbmax_out, double *rs0_out)
+void output_nbody6(char *outname, int N_star, int nbin, double *r2_sort, int seed, double r_virial, double m_mean, double mlow, double mhigh, double q, int NNBMAX, double RS0)
 {
 	FILE *FP;
 	if (NULL == (FP=fopen(outname,"w"))){
@@ -17,12 +18,12 @@ void output_nbody6(char *outname, int N_star, int nbin, double *r2_sort, int see
 //	int NFIX=1;
 //	int NCRIT=10;
 	int NRAND=seed;
-	int NNBMAX;
-	/**** NNBMAX ****/
-	NNBMAX = 1.25*sqrt(N);
-	if (NNBMAX<30) NNBMAX=30;
-	if (N<=NNBMAX) NNBMAX=0.5*N;
-	*nnbmax_out = NNBMAX;
+//	int NNBMAX;
+//	/**** NNBMAX ****/
+//	NNBMAX = 1.25*sqrt(N);
+//	if (NNBMAX<30) NNBMAX=30;
+//	if (N<=NNBMAX) NNBMAX=0.5*N;
+//	*nnbmax_out = NNBMAX;
 	/**** NNBMAX ****/
 //	int NRUN=1;
 	fprintf(FP,"%d 1 10 %d %d 1\n",N,NRAND,NNBMAX);
@@ -30,10 +31,10 @@ void output_nbody6(char *outname, int N_star, int nbin, double *r2_sort, int see
 
 //	double ETAI=0.02;
 //	double ETAR=0.02;
-	double RS0;
-	/**** RS0 ****/
-	RS0 = sqrt(r2_sort[NNBMAX]);
-	*rs0_out = RS0;
+//	double RS0;
+//	/**** RS0 ****/
+//	RS0 = sqrt(r2_sort[NNBMAX]);
+//	*rs0_out = RS0;
 	/**** RS0 ****/
 	double DTADJ=1.0;
 	double DELTAT=1.0;
