@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <float.h>
+#include <omp.h>
 #include "type.h"
 #include "func.h"
 
@@ -22,7 +23,7 @@ double nbody_scale(int N_node, double q, struct vector_s *star, int *nnbmax_out,
 //	double vvir_nbody = 0.5*q/(1-q); // mean square velocity in nbody-unit
 	double r2,rscale,vscale;
 	double *rij;
-	rij = (double*) malloc (N_node*sizeof(double));
+//	rij = (double*) malloc (N_node*sizeof(double));
 
 	struct vector_s centre={0,0,0,0,0,0,0};
 	// centre of mass correction
@@ -54,8 +55,14 @@ double nbody_scale(int N_node, double q, struct vector_s *star, int *nnbmax_out,
 	}
 
 	RS0=0;
+//	for (i=0;i<N_node;++i) rij[i] = DBL_MAX;
+//#pragma omp parallel for private(i,j,r2,rij) reduction(-:Ep) reduction(+:RS0) reduction(+:Ek)
+#pragma omp parallel private(rij)
+	{
+	rij = (double*) malloc (N_node*sizeof(double));
+#pragma omp for private(i,j,r2) reduction(-:Ep) reduction(+:RS0) reduction(+:Ek)
 	for (i=0;i<N_node;++i){
-		rij[i] = DBL_MAX;
+//		rij[i] = DBL_MAX;
 		for (j=0;j<N_node;++j){
 			if (i!=j) {
 				r2 = ( star[i].x - star[j].x )*( star[i].x - star[j].x ) +\
@@ -65,11 +72,13 @@ double nbody_scale(int N_node, double q, struct vector_s *star, int *nnbmax_out,
 			}
 			if (j>i) Ep -= star[i].m*star[j].m / sqrt(r2);
 		}
-//		RS0 += sqrt( selectk(rij,N_node,NNBMAX) );
-		quick_sort(rij,N_node);
-		RS0 += sqrt( rij[NNBMAX/5] );
+		RS0 += sqrt( quick_select(rij,NNBMAX/5,N_node) );
+//		quick_sort(rij,N_node);
+//		RS0 += sqrt( rij[NNBMAX/5] );
+
 //		v2 = star[i].vx*star[i].vx + star[i].vy*star[i].vy + star[i].vz*star[i].vz;
 		Ek += star[i].m * ( star[i].vx*star[i].vx + star[i].vy*star[i].vy + star[i].vz*star[i].vz );
+	}
 	}
 	Ek *= 0.5;
 	RS0 /= N_node;

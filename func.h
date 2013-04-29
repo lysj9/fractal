@@ -19,6 +19,7 @@ void mempool_destroy();
 
 void quick_sort_widx(double *a, int *idx, int n);
 void quick_sort(double *a, int n);
+double quick_select(double *a, int k, int n);
 
 void sort_radius(int N_cm, struct vector_s *star, double *r2_sort, int *idx);
 double get_radius(int N_cm, struct vector_s *star, double truncate, double *r2_sort, int *idx);
