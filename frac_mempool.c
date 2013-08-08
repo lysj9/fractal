@@ -143,7 +143,7 @@ void fractal(int StarNum, double D, double mlow, double mhigh, struct vector_s *
 						//	r=1, v_sigma=v1, so we set v_sigma(r)=<v_sigma>+(1+r^2)^b/2;
 //					vnoise = pow( 1+r2,b/2 );
 						//	r=1, v_sigma=v1, so we set v_sigma(r)=<v_sigma>+(1+r^2)^b/2;
-					v = gaussrand2(0.0,vnoise);
+					v = gaussrand(0.0,vnoise);
 						//	v is the velocity disperion;
 					vz  = v*theta;
 					vxy = sqrt(v*v - vz*vz);
@@ -169,9 +169,9 @@ void fractal(int StarNum, double D, double mlow, double mhigh, struct vector_s *
 //					child->x  = x+rnoise*randomz(-1,1);
 //					child->y  = y+rnoise*randomz(-1,1);
 //					child->z  = z+rnoise*randomz(-1,1);
-					child->x  = x+gaussrand2(0,rnoise);
-					child->y  = y+gaussrand2(0,rnoise);
-					child->z  = z+gaussrand2(0,rnoise);
+					child->x  = x+gaussrand(0,rnoise);
+					child->y  = y+gaussrand(0,rnoise);
+					child->z  = z+gaussrand(0,rnoise);
 
 					child->vx = vx;
 					child->vy = vy;

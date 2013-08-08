@@ -10,7 +10,9 @@
 void fractal(int StarNum, double D, double mlow, double mhigh, struct vector_s *star)
 {
 	unsigned long int LEN = sizeof(struct node);
-//	mempool_init(LEN);
+#ifdef USE_MEMPOOL
+	mempool_init(LEN);
+#endif
 	int N_div = 2;
 	// The possibility of a sub-node matures to become a parent node.
 	double mp = pow(N_div,D-3);
@@ -20,7 +22,7 @@ void fractal(int StarNum, double D, double mlow, double mhigh, struct vector_s *
 	double a1=0.3,a2=1.3,a3=2.3;
 	double upper;
 	double temp;
-	if ( mlow>mhigh ){
+	if (mlow>mhigh) {
 		fprintf(stderr,"lower limit of mass %lf larger than the upper limit %lf!\n",
 				mlow,mhigh);
 		fprintf(stderr,"swap these two values...\n");
@@ -38,26 +40,19 @@ void fractal(int StarNum, double D, double mlow, double mhigh, struct vector_s *
 	double dm = mhigh - mlow;
 	int numc=1;
 	struct node *child,*parent,*headc,*headp;
-//	struct node *centre_node;
-//	centre_node = (struct node*) malloc(LEN);
-//	centre_node->m  = 1;
-//	centre_node->x  = 0;
-//	centre_node->y  = 0;
-//	centre_node->z  = 0;
-//	centre_node->vx = 0;
-//	centre_node->vy = 0;
-//	centre_node->vz = 0;
-//	centre_node->next = NULL;
-//	headc->next = centre_node;
-	if ( NULL == (headc = (struct node*) malloc(LEN)) ){
+	if (NULL == (headc = (struct node*) malloc(LEN))) {
 		fprintf(stderr,"fractal: malloc headc failed!\n");
 		exit(-1);
 	}
+#ifdef USE_MEMPOOL
+	headc->next = (struct node*) mempool_malloc();
+#else
 	headc->next = (struct node*) malloc(LEN);
 	if (NULL == headc->next){
 		fprintf(stderr,"fractal: malloc headc failed!\n");
 		exit(-1);
 	}
+#endif
 	headc->next->m  = 1;
 	headc->next->x  = 0;
 	headc->next->y  = 0;
@@ -67,11 +62,15 @@ void fractal(int StarNum, double D, double mlow, double mhigh, struct vector_s *
 	headc->next->vz = 0;
 	headc->next->next = NULL;
 
+#ifdef USE_MEMPOOL
+	headp = (struct node*) mempool_malloc();
+#else
 	headp = (struct node*) malloc(LEN);
 	if (NULL == headc->next){
 		fprintf(stderr,"fractal: malloc headp failed!\n");
 		exit(-1);
 	}
+#endif
 	headp->next = NULL;
 
 
@@ -94,12 +93,16 @@ void fractal(int StarNum, double D, double mlow, double mhigh, struct vector_s *
 		while (NULL != child->next ){
 			child = child->next;
 			if (NULL == parent->next) {
+#ifdef USE_MEMPOOL
+				parent->next = (struct node*) mempool_malloc();
+#else
 				parent->next = (struct node*) malloc(LEN);
 				if (NULL == parent->next){
 					fprintf(stderr,"fractal: generation=%d\t",generation);
 					fprintf(stderr,"malloc parent->next failed!\n");
 					exit(-1);
 				}
+#endif
 				parent->next->next = NULL;
 			}
 			parent = parent->next;
@@ -156,7 +159,7 @@ void fractal(int StarNum, double D, double mlow, double mhigh, struct vector_s *
 						//	r=1, v_sigma=v1, so we set v_sigma(r)=<v_sigma>+(1+r^2)^b/2;
 //					vnoise = pow( 1+r2,b/2 );
 						//	r=1, v_sigma=v1, so we set v_sigma(r)=<v_sigma>+(1+r^2)^b/2;
-					v = gaussrand2(0.0,vnoise);
+					v = gaussrand(0.0,vnoise);
 						//	v is the velocity disperion;
 					vz  = v*theta;
 					vxy = sqrt(v*v - vz*vz);
@@ -172,12 +175,16 @@ void fractal(int StarNum, double D, double mlow, double mhigh, struct vector_s *
 //					vz  = parent->vz*mcoefficient + randomz(-1,1);
 
 					if (NULL == child->next) {
+#ifdef USE_MEMPOOL
+						child->next = (struct node*) mempool_malloc();
+#else
 						child->next = (struct node*) malloc(LEN);
 						if (NULL == child->next){
 							fprintf(stderr,"fractal: generation=%d\t",generation);
 							fprintf(stderr,"malloc child->next failed!\n");
 							exit(-1);
 						}
+#endif
 						child->next->next = NULL;
 					}
 					child = child->next;
@@ -187,9 +194,9 @@ void fractal(int StarNum, double D, double mlow, double mhigh, struct vector_s *
 //					child->x  = x+rnoise*randomz(-1,1);
 //					child->y  = y+rnoise*randomz(-1,1);
 //					child->z  = z+rnoise*randomz(-1,1);
-					child->x  = x+gaussrand2(0,rnoise);
-					child->y  = y+gaussrand2(0,rnoise);
-					child->z  = z+gaussrand2(0,rnoise);
+					child->x  = x+gaussrand(0,rnoise);
+					child->y  = y+gaussrand(0,rnoise);
+					child->z  = z+gaussrand(0,rnoise);
 
 					child->vx = vx;
 					child->vy = vy;
@@ -250,58 +257,20 @@ void fractal(int StarNum, double D, double mlow, double mhigh, struct vector_s *
 		staridx[i] = i;
 	}
 	fprintf(stderr,"Choose %d particles from %d leaves randomly\n",StarNum,numc);
-//	randqueue(numc,idx,StarNum,staridx);
+	randqueue(numc,idx,StarNum,staridx);
 	double eps=5e-3;
-	randqueue2(numc,idx,all_star,StarNum,staridx,eps);
+//	randqueue2(numc,idx,all_star,StarNum,staridx,eps);
 	for (i=0;i<StarNum;++i) {
 		star[i] = all_star[ staridx[i] ];
 	}
-
-/*
-	//  set coms to zero
-	struct vector_s centre={0,0,0,0,0,0,0};
-	for ( i=0;i<StarNum;++i ){
-		centre.x += star[i].x;
-		centre.y += star[i].y;
-		centre.z += star[i].z;
-		centre.vx += star[i].vx;
-		centre.vy += star[i].vy;
-		centre.vz += star[i].vz;
-	}
-	centre.x /= StarNum;
-	centre.y /= StarNum;
-	centre.z /= StarNum;
-	centre.vx /= StarNum;
-	centre.vy /= StarNum;
-	centre.vz /= StarNum;
-	fprintf(stderr,"centre of mass: %lf %lf %lf\n",centre.x,centre.y,centre.z);
-	fprintf(stderr,"centre of velocity: %lf %lf %lf\n",centre.vx,centre.vy,centre.vz);
-	for ( i=0;i<StarNum;++i ){
-		star[i].x -= centre.x;
-		star[i].y -= centre.y;
-		star[i].z -= centre.z;
-		star[i].vx -= centre.vx;
-		star[i].vy -= centre.vy;
-		star[i].vz -= centre.vz;
-	}
-*/
-
-/*
-	for (i=0;i<StarNum;++i) {
-		printf("%24.16e %24.16e %24.16e %24.16e %24.16e %24.16e %24.16e\n",
-				star[i].m,
-				star[i].x,star[i].y,star[i].z,
-				star[i].vx,star[i].vy,star[i].vz);
-	}
-	exit(0);
-*/
-
-//	mempool_destroy();
 
 	free(all_star);
 	free(idx);
 	free(staridx);
 
+#ifdef USE_MEMPOOL
+	mempool_destroy();
+#else
 	struct node* pf;
 	child = headc;
 	while (NULL != child->next){
@@ -317,6 +286,7 @@ void fractal(int StarNum, double D, double mlow, double mhigh, struct vector_s *
 		parent = pf;
 	}
 	free(parent);
+#endif
 
 	return;
 }

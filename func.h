@@ -1,7 +1,6 @@
 void randomz_seed(int seed);
 double randomz();
-double gaussrand1( double,double );
-double gaussrand2( double,double );
+double gaussrand( double,double );
 void randqueue( int,int*,int,int* );
 void randqueue2(int n, int *idx, struct vector_s *star, int randnum, int *randidx, double eps);
 //void fractal(int,double,double*,struct vector_s*);
