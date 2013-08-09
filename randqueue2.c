@@ -29,6 +29,8 @@ void randqueue2(int n, int randnum, struct vector_s *star, double eps)
 		idx[i] = itemp;
 		randidx[j] = idx[i];
 		--i;
+	}
+}
 
 void randqueue( int        n,
 				int     *idx,
