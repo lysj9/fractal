@@ -2,7 +2,7 @@ void randomz_seed(int seed);
 double randomz();
 double gaussrand( double,double );
 void randqueue( int,int*,int,int* );
-void randqueue2(int n, int *idx, struct vector_s *star, int randnum, int *randidx, double eps);
+void randqueue2(int n, int *idx, int randnum, int *randidx, struct vector_s *star, double eps);
 //void fractal(int,double,double*,struct vector_s*);
 void fractal(int StarNum, double D, double mlow, double mhigh, struct vector_s *star);
 int getopt(int,char*[],char*);

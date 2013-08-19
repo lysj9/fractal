@@ -87,7 +87,7 @@ void fractal(int StarNum, double D, double mlow, double mhigh, struct vector_s *
 	delta = 0.5;
 	rnoise = 0.1;
 	vnoise = 1.0;
-	while (numc<10*StarNum){
+	while (numc<100*StarNum){
 		parent = headp;
 		child  = headc;
 		while (NULL != child->next ){
@@ -257,12 +257,13 @@ void fractal(int StarNum, double D, double mlow, double mhigh, struct vector_s *
 		staridx[i] = i;
 	}
 	fprintf(stderr,"Choose %d particles from %d leaves randomly\n",StarNum,numc);
-	randqueue(numc,idx,StarNum,staridx);
-	double eps=5e-3;
-//	randqueue2(numc,idx,all_star,StarNum,staridx,eps);
+	double eps=5e-4;
+//	randqueue(numc,idx,StarNum,staridx);
+	randqueue2(numc,idx,StarNum,staridx,all_star,eps);
 	for (i=0;i<StarNum;++i) {
 		star[i] = all_star[ staridx[i] ];
 	}
+	fprintf(stderr,"...random choose finished!\n");
 
 	free(all_star);
 	free(idx);
