@@ -7,6 +7,26 @@
 
 #define PART 8
 
+double makemass(double mlow, double mhigh)
+{
+	double m,m1=0.08,m2=0.5;
+	double a1=0.3,a2=1.3,a3=2.3;
+	nlow = (pow(mlow/m2,-a1+1) - 1) / (-a1 + 1);
+	nup = (pow(mhigh/m2,-a2+1) - 1) / (-a2 + 1);
+	norm = 1./(nup - nlow);
+	xlow = 
+	do {
+		m = mlow + dm * randomz();
+		if (m<m1){
+			temp = pow(m1,a1-a2) * pow(m,-a1);
+		} else if (m>m2) {
+			temp = pow(m2,a3-a2) * pow(m,-a3);
+		} else {
+			temp = pow(m,-a2);
+		}
+	} while (upper*randomz() > temp);
+}
+
 void fractal(int StarNum, double D, double mlow, double mhigh, struct vector_s *star)
 {
 	unsigned long int LEN = sizeof(struct node);
