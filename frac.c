@@ -11,10 +11,59 @@ double makemass(double mlow, double mhigh)
 {
 	double m,m1=0.08,m2=0.5;
 	double a1=0.3,a2=1.3,a3=2.3;
+	if (ml < m1) {
+		s = 3;
+	} else if (ml < m2) {
+		s = 2;
+	} else {
+		s = 1;
+	}
+	switch 's' {
+		case '3':
+			if (randomz() < x1) {
+			} else if {
+			} else {
+			};
+		case '2':
+			if (randomz() < x1) {
+			} else {
+			};
+		case '1':
+	}
+	if (ml < m1) {
+	} else if (ml < m2) {
+		n1 = (pow(ml/m2,-a1+1) - 1) / (-a1 + 1);
+		n2 = (pow(mh/m2,-a2+1) - 1) / (-a2 + 1);
+		nt = 1./(n2 - n1);
+		x1 = nt * (-n1);
+		if (randomz() < xl) {
+			lower = ml;
+			upper = m2;
+			alpha = a2;
+		} else {
+			lower = m2;
+			upper = mh;
+			alpha = a3;
+		}
+	} else {
+		norm = pow(upper/lower,1+alpha) - 1;
+	}
 	nlow = (pow(mlow/m2,-a1+1) - 1) / (-a1 + 1);
 	nup = (pow(mhigh/m2,-a2+1) - 1) / (-a2 + 1);
 	norm = 1./(nup - nlow);
-	xlow = 
+	xlow = ;
+	if (randomz() < xlow) {
+		low = mlow;
+		high= m2;
+		alpha = a2;
+	} else {
+		low = m2;
+		high= mhigh;
+		alpha = a3;
+	}
+	norm = pow(high/low,1+alpha) - 1;
+	x = low * pow(norm*randomz() + 1,1/(1+alpha));
+	return x;
 	do {
 		m = mlow + dm * randomz();
 		if (m<m1){
