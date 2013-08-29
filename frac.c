@@ -20,15 +20,25 @@ double makemass(double mlow, double mhigh)
 	}
 	switch 's' {
 		case '3':
-			if (randomz() < x1) {
-			} else if {
+			rz = randomz();
+			if (rz < x1) {
+				m = general_power_law(ml,m1,a1);
+			} else if (rz < x2) {
+				m = general_power_law(m1,m2,a2);
 			} else {
-			};
+				m = general_power_law(m2,mh,a3);
+			}
+			break;
 		case '2':
 			if (randomz() < x1) {
+				m = general_power_law(ml,m2,a2);
 			} else {
-			};
+				m = general_power_law(m2,mh,a3);
+			}
+			break;
 		case '1':
+			general_power_law(ml,mh,a3);
+			break;
 	}
 	if (ml < m1) {
 	} else if (ml < m2) {
