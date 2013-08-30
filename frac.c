@@ -7,23 +7,32 @@
 
 #define PART 8
 
-double makemass(double mlow, double mhigh)
+static
+double general_power_law(double ml, double mh, double alpha)
+{
+	double m;
+	double norm;
+	if (alpha == 1) {
+		norm = log(mh/ml);
+		m = ml * exp(norm*randomz());
+	} else {
+		norm = pow(mh/ml,-alpha+1) - 1;
+		m = ml * pow(norm*randomz() + 1, 1/(1 - alpha));
+	}
+	return m;
+}
+
+double makemass(double ml, double mh, double x1, double x2, int s)
 {
 	double m,m1=0.08,m2=0.5;
 	double a1=0.3,a2=1.3,a3=2.3;
-	if (ml < m1) {
-		s = 3;
-	} else if (ml < m2) {
-		s = 2;
-	} else {
-		s = 1;
-	}
-	switch 's' {
+	double x,x1,x2;
+	switch (s) {
 		case '3':
-			rz = randomz();
-			if (rz < x1) {
+			x = randomz();
+			if (x < x1) {
 				m = general_power_law(ml,m1,a1);
-			} else if (rz < x2) {
+			} else if (x < x2) {
 				m = general_power_law(m1,m2,a2);
 			} else {
 				m = general_power_law(m2,mh,a3);
@@ -40,50 +49,58 @@ double makemass(double mlow, double mhigh)
 			general_power_law(ml,mh,a3);
 			break;
 	}
+}
+
+double kroupa_IMF(double ml, double mh)
+{
+	double m,m1=0.08,m2=0.5;
+	double a1=0.3,a2=1.3,a3=2.3;
+	double x,x1,x2;
+	double norm1,norm2,norm3,norm;
+	int s;
 	if (ml < m1) {
+		s = 3;
+		norm1 = (pow(m1/ml,-a1+1) - 1) / (-a1 + 1);
+		norm2 = (pow(m2/m1,-a2+1) - 1) / (-a2 + 1);
+		norm3 = (pow(mh/m2,-a3+1) - 1) / (-a3 + 1);
+		norm  = 1. / (norm1 + norm2 + norm3);
 	} else if (ml < m2) {
-		n1 = (pow(ml/m2,-a1+1) - 1) / (-a1 + 1);
-		n2 = (pow(mh/m2,-a2+1) - 1) / (-a2 + 1);
-		nt = 1./(n2 - n1);
-		x1 = nt * (-n1);
-		if (randomz() < xl) {
-			lower = ml;
-			upper = m2;
-			alpha = a2;
-		} else {
-			lower = m2;
-			upper = mh;
-			alpha = a3;
-		}
+		s = 2;
+		norm1 = 0;
+		norm2 = (pow(m1/ml,-a2+1) - 1) / (-a2 + 1);
+		norm3 = (pow(mh/m2,-a3+1) - 1) / (-a3 + 1);
+		norm  = 1. / (norm1 + norm2 + norm3);
 	} else {
-		norm = pow(upper/lower,1+alpha) - 1;
+		s = 1;
+		norm1 = 0;
+		norm2 = 0;
+		norm3 = (pow(mh/ml,-a3+1) - 1) / (-a3 + 1);
+		norm  = 1. / (norm1 + norm2 + norm3);
 	}
-	nlow = (pow(mlow/m2,-a1+1) - 1) / (-a1 + 1);
-	nup = (pow(mhigh/m2,-a2+1) - 1) / (-a2 + 1);
-	norm = 1./(nup - nlow);
-	xlow = ;
-	if (randomz() < xlow) {
-		low = mlow;
-		high= m2;
-		alpha = a2;
-	} else {
-		low = m2;
-		high= mhigh;
-		alpha = a3;
+	x1 = norm * norm1;
+	x2 = norm * (norm1 + norm2);
+	switch (s) {
+		case '3':
+			x = randomz();
+			if (x < x1) {
+				m = general_power_law(ml,m1,a1);
+			} else if (x < x2) {
+				m = general_power_law(m1,m2,a2);
+			} else {
+				m = general_power_law(m2,mh,a3);
+			}
+			break;
+		case '2':
+			if (randomz() < x1) {
+				m = general_power_law(ml,m2,a2);
+			} else {
+				m = general_power_law(m2,mh,a3);
+			}
+			break;
+		case '1':
+			general_power_law(ml,mh,a3);
+			break;
 	}
-	norm = pow(high/low,1+alpha) - 1;
-	x = low * pow(norm*randomz() + 1,1/(1+alpha));
-	return x;
-	do {
-		m = mlow + dm * randomz();
-		if (m<m1){
-			temp = pow(m1,a1-a2) * pow(m,-a1);
-		} else if (m>m2) {
-			temp = pow(m2,a3-a2) * pow(m,-a3);
-		} else {
-			temp = pow(m,-a2);
-		}
-	} while (upper*randomz() > temp);
 }
 
 void fractal(int StarNum, double D, double mlow, double mhigh, struct vector_s *star)
