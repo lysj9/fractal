@@ -51,6 +51,7 @@ double makemass(double ml, double mh, double x1, double x2, int s)
 	}
 }
 
+/* Kroupa IMF */
 double kroupa_IMF(double ml, double mh)
 {
 	double m,m1=0.08,m2=0.5;
@@ -109,75 +110,34 @@ double kroupa_IMF(double ml, double mh)
 	return m;
 }
 
-double IMF(double ml, double mh, int s, double *a, double *m0)
+double IMF(int s, double *a, double *m0)
 {
-	/* s sections, ml < m0[0], mh > m0[s-1] */
+	/* s sections, ml = m0[0], mh = m0[s] */
 	double norm;
+	double norm0[s];
+	double a1[s];
+	/*
 	double *norm0;
 	norm0 = (double*) malloc(s*sizeof(double));
 	double *a1;
-	a1 = 1 - a[0];
-	norm0[0] = (pow(ml,a1) - pow(m0[0],a1)) / a1;
-	for (i=1;i<s-1;++i) {
+	a1 = (double*) malloc(s*sizeof(double));
+	*/
+	for (i=0;i<s;++i) {
 		a1 = 1 - a[i];
-		norm0[i] = (pow(m0[i-1],a1) - pow(m0[i],a1)) / a1;
+		norm0[i] = (pow(m0[i+1],a1) - pow(m0[i],a1)) / a1;
 	}
-	a1 = 1 - a[s-1];
-	norm0[s-1] = (pow(m0[s-1],a1) - pow(mh,a1)) / a1;
-	double m,m1=0.08,m2=0.5;
-	double a1=0.3,a2=1.3,a3=2.3;
-	double a11=1-a1,a21=1-a2,a31=1-a3;
-	double x,x1,x2;
-	double norm1=0,norm2=0,norm3=0,norm;
-	int s;
-	if (ml < m1) {
-		if (mh < m1) {
-			m = general_power_law(ml,mh,a1);
-		} else if (mh < m2) {
-			norm1 = (pow(m1,a11) - pow(ml,a11))/a11;
-			norm2 = (pow(mh,a21) - pow(m1,a21))/a21;
-			norm  = 1.0 / (norm1 + norm2);
-			x1 = norm * norm1;
-			x  = randomz();
-			if (x < x1) {
-				m = general_power_law(ml,m1,a1);
-			} else {
-				m = general_power_law(m1,mh,a2);
-			}
-		} else {
-			norm1 = (pow(m1,a11) - pow(ml,a11))/a11;
-			norm2 = (pow(m2,a21) - pow(m1,a21))/a21;
-			norm3 = (pow(mh,a31) - pow(m2,a31))/a31;
-			norm  = 1.0 / (norm1 + norm2 + norm3);
-			x1 = norm * norm1;
-			x2 = norm * (norm1 + norm2);
-			x  = randomz();
-			if (x < x1) {
-				m = general_power_law(ml,m1,a1);
-			} else if (x < x2) {
-				m = general_power_law(m1,m2,a2);
-			} else {
-				m = general_power_law(m2,mh,a3);
-			}
+	
+	norm = 0;
+	for (i=0;i<s;++i) norm += norm0[i];
+	x0[i] = norm0[0]/norm;
+	for (i=1;i<s;++i) x0[i] = x0[i-1] + norm0[i]/norm;
+	x = randomz();
+	for (i=0;i<s;++i) {
+		if (x < x0[i]) {
+			m = general_power_law(m0[i],m0[i+1],a[i]);
+			break;
 		}
-	} else if (ml<m2) {
-		if (mh < m2) {
-			m = general_power_law(ml,mh,a2);
-		} else {
-			norm2 = (pow(m2,a21) - pow(ml,a21))/a21;
-			norm3 = (pow(mh,a31) - pow(m2,a31))/a31;
-			norm  = 1.0 / (norm2 + norm3);
-			x2 = norm * norm2;
-			if (x < x2) {
-				m = general_power_law(ml,m2,a2);
-			} else {
-				m = general_power_law(m2,mh,a3);
-			}
-		}
-	} else {
-		m = general_power_law(ml,mh,a3);
 	}
-	return m;
 }
 
 void fractal(int StarNum, double D, double mlow, double mhigh, struct vector_s *star)
