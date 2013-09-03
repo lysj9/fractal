@@ -1,11 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include "type.h"
 
 #include "randomz.h"
 
-static
 double general_power_law(double ml, double mh, double alpha)
 {
 	double m;
@@ -18,35 +16,6 @@ double general_power_law(double ml, double mh, double alpha)
 		m = ml * pow(norm*randomz() + 1, 1/(1 - alpha));
 	}
 	return m;
-}
-
-double makemass(double ml, double mh, double x1, double x2, int s)
-{
-	double m,m1=0.08,m2=0.5;
-	double a1=0.3,a2=1.3,a3=2.3;
-	double x;
-	switch (s) {
-		case '3':
-			x = randomz();
-			if (x < x1) {
-				m = general_power_law(ml,m1,a1);
-			} else if (x < x2) {
-				m = general_power_law(m1,m2,a2);
-			} else {
-				m = general_power_law(m2,mh,a3);
-			}
-			break;
-		case '2':
-			if (randomz() < x1) {
-				m = general_power_law(ml,m2,a2);
-			} else {
-				m = general_power_law(m2,mh,a3);
-			}
-			break;
-		case '1':
-			general_power_law(ml,mh,a3);
-			break;
-	}
 }
 
 /* Kroupa IMF */
@@ -95,6 +64,7 @@ double kroupa_IMF(double ml, double mh)
 			norm3 = (pow(mh,a31) - pow(m2,a31))/a31;
 			norm  = 1.0 / (norm2 + norm3);
 			x2 = norm * norm2;
+			x  = randomz();
 			if (x < x2) {
 				m = general_power_law(ml,m2,a2);
 			} else {
@@ -111,7 +81,7 @@ double IMF(int s, double *a, double *m0)
 {
 	/* s sections, ml = m0[0], mh = m0[s], m0[i] < m0[i+1] */
 	/* f(m)dm = ki * m^(-ai) , m0[i] < m < m0[i+1], i=0,1,...,s-1 */
-	double m;
+	double m=0;
 	double norm;
 	double norm0[s];
 	double a1;
@@ -142,6 +112,7 @@ double IMF(int s, double *a, double *m0)
 	return m;
 }
 
+/* rejection sampling or acceptance-rejection method, inefficient way */
 double make_mass(double mlow, double mhigh)
 {
 	double m;
@@ -153,7 +124,6 @@ double make_mass(double mlow, double mhigh)
 	else upper = pow(mlow,-a2);
 	double dm = mhigh - mlow;
 	double temp;
-//	three part pow-law mass function;
 	do {
 		m = mlow + dm * randomz();
 		if (m<m1) {

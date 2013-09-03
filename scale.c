@@ -5,6 +5,7 @@
 #include <omp.h>
 #include "type.h"
 
+#include "quick_select.h"
 #include "quick_sort.h"
 
 double nbody_scale(int N_node, double q, struct vector_s *star, int *nnbmax_out, double *rs0_out)

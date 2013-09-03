@@ -6,22 +6,11 @@
 	b=temp;\
 })
 
-/*
-#define SWAP(a,b,type) do\
-{\
-	type temp;\
-	temp=a;\
-	a=b;\
-	b=temp;\
-} while(0)
-*/
-
 double quick_select(double *a, int k, int n)
 {
 	int i,j;
 	int l=0,r=n-1;
 	double a0;
-//	double ftemp;
 	double ak;
 
 	while (1){

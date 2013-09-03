@@ -6,6 +6,7 @@
 
 #include "mempool.h"
 #include "randomz.h"
+#include "randqueue.h"
 
 #define PART 8
 
@@ -271,7 +272,6 @@ void fractal(int StarNum, double D, double mlow, double mhigh, struct vector_s *
 		all_star[i].vy = child->vy;
 		all_star[i].vz = child->vz;
 
-//		printf("%lf %lf %lf %lf %lf\n",all_star[i].m,all_star[i].x,all_star[i].vx,all_star[i].vy,all_star[i].vz);
 		child = child->next;
 	}
 
@@ -290,11 +290,10 @@ void fractal(int StarNum, double D, double mlow, double mhigh, struct vector_s *
 	}
 	fprintf(stderr,"Choose %d particles from %d leaves randomly\n",StarNum,numc);
 	double eps=5e-4;
-	randqueue(numc,idx,StarNum,staridx);
-//	randqueue2(numc,idx,StarNum,staridx,all_star,eps);
+//	randqueue(numc,idx,StarNum,staridx);
+	randqueue2(numc,idx,StarNum,staridx,all_star,eps);
 	for (i=0;i<StarNum;++i) {
 		star[i] = all_star[ staridx[i] ];
-//		printf("%lf %lf %lf %lf %le\n",star[i].m,star[i].x,star[i].vx,star[i].vy,star[i].vz);
 	}
 	i=0;
 	printf("%lf %lf %lf %lf %le\n",star[i].m,star[i].x,star[i].vx,star[i].vy,star[i].vz);
