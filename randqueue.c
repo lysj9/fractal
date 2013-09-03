@@ -5,7 +5,8 @@
 #include <omp.h>
 #include <sys/time.h>
 #include "type.h"
-#include "func.h"
+
+#include "randomz.h"
 
 void randqueue2(int n, int *idx, int randnum, int *randidx, struct vector_s *star, double eps)
 {
@@ -14,7 +15,7 @@ void randqueue2(int n, int *idx, int randnum, int *randidx, struct vector_s *sta
 	double t_cost;
 	gettimeofday(&t0,NULL);
 
-	randnum = 30000;
+//	randnum = 30000;
 	int i=0,j=0,k=0;
 	int itemp=0;
 	int randi;
@@ -101,7 +102,7 @@ void randqueue2(int n, int *idx, int randnum, int *randidx, struct vector_s *sta
 	tns = (t1.tv_sec-t0.tv_sec)*1000000LL + (t1.tv_usec-t0.tv_usec);
 	t_cost = tns*1e-3;
 	printf("time: %lld ns, %lf ms ...\n",tns,t_cost);
-	exit(0);
+//	exit(0);
 }
 
 void randqueue( int        n,

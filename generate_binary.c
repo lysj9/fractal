@@ -2,8 +2,9 @@
 #include <stdlib.h>
 #include <math.h>
 #include "type.h"
-#include "func.h"
 #include "constant.h"
+
+#include "randomz.h"
 
 static double eigenevolution(double *m1, double *m2, double *P, double *e);
 static double orbital_kepler(double M_orbit, double e);

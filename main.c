@@ -3,8 +3,16 @@
 #include <math.h>
 #include <time.h>
 #include "type.h"
-#include "func.h"
 #include "constant.h"
+
+#include "frac.h"
+#include "generate_binary.h"
+#include "generate_mass.h"
+#include "getopt.h"
+#include "make_mass.h"
+#include "output.h"
+#include "randomz.h"
+#include "scale.h"
 
 int main(int argc, char *argv[])
 {
@@ -155,7 +163,9 @@ int main(int argc, char *argv[])
 //	mass_pair(N_star,nbin,mass);
 //	sort_mass();
 	N_node = N_star - nbin;
-	fractal (N_node,D,mlow,mhigh,star);
+	fractal(N_node,D,mlow,mhigh,star);
+	i=0;
+	printf("%lf %lf %lf %lf %lf\n",star[i].m,star[i].x,star[i].vx,star[i].vy,star[i].vz);
 
 	t_end=clock();
 	t_cost=(double)(t_end-t_start)/CLOCKS_PER_SEC;

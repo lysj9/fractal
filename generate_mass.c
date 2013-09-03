@@ -2,7 +2,8 @@
 #include <stdlib.h>
 #include <math.h>
 #include "type.h"
-#include "func.h"
+
+#include "randomz.h"
 
 void generate_mass(int N, double mlow, double mhigh, double *mass)
 {
