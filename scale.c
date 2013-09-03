@@ -4,7 +4,8 @@
 #include <float.h>
 #include <omp.h>
 #include "type.h"
-#include "func.h"
+
+#include "quick_sort.h"
 
 double nbody_scale(int N_node, double q, struct vector_s *star, int *nnbmax_out, double *rs0_out)
 {
@@ -73,7 +74,7 @@ double nbody_scale(int N_node, double q, struct vector_s *star, int *nnbmax_out,
 			if (j>i) Ep -= star[i].m*star[j].m / sqrt(r2);
 		}
 		RS0 += sqrt( quick_select(rij,NNBMAX/5,N_node) );
-//		quick_sort(rij,N_node);
+//		quick_sort1(rij,N_node);
 //		RS0 += sqrt( rij[NNBMAX/5] );
 
 //		v2 = star[i].vx*star[i].vx + star[i].vy*star[i].vy + star[i].vz*star[i].vz;
@@ -137,7 +138,7 @@ void sort_radius(int N_cm, struct vector_s *star, double *r2_sort, int *idx)
 					 (star[i].z*star[i].z);
 		idx[i] = i;
 	}
-	quick_sort_widx(r2_sort,idx,N_cm);
+	quick_sort2(r2_sort,idx,N_cm);
 	return;
 }
 

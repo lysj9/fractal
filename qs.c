@@ -3,8 +3,6 @@
 #include <math.h>
 #include <omp.h>
 
-#define _QS_FAST_
-
 #define NN 15
 #define MAX_DEPTH 11
 
@@ -126,7 +124,6 @@ void quick_sort_noidx_loop(double *a, int n)
 	int l=0,r=n-1;
 	double a0;
 	int nstack;
-//	nstack=2*log2(n);
 	nstack=2*8*sizeof(n);
 	int istack[nstack],jstack=0;
 
@@ -189,7 +186,6 @@ void quick_sort_widx_loop(double *a, int *idx, int n)
 	double a0;
 	int id0;
 	int nstack;
-//	nstack=2*log2(n);
 	nstack=2*8*sizeof(n);
 	int istack[nstack],jstack=0;
 
@@ -256,6 +252,18 @@ void quick_sort_widx_loop(double *a, int *idx, int n)
 	return;
 }
 
+void quick_sort_noidx_seq(double *a, int n)
+{
+	quick_sort_noidx_loop(a,n);
+//	quick_sort_noidx_recursive(a,0,n-1);
+}
+
+void quick_sort_widx_seq(double *a, int *idx, int n)
+{
+	quick_sort_widx_loop(a,idx,n);
+//	quick_sort_widx_recursive(a,idx,0,n-1);
+}
+
 /* 
  * qs 在数组较小时采用冒泡排序
  * 采用（子）数组的中间元素作为枢
@@ -263,8 +271,8 @@ void quick_sort_widx_loop(double *a, int *idx, int n)
  * （必须在数组较小时采用其他方法排序，退出循环采用j<i而非j<=i）
  * 但其中区别暂不明
  */
-static
-void quick_sort_noidx_omp_kernel(double *a, int l, int r, int depth)
+//static
+void qs_noidx(double *a, int l, int r, int depth)
 {
 	int i,j;
 	double a0;
@@ -305,20 +313,20 @@ void quick_sort_noidx_omp_kernel(double *a, int l, int r, int depth)
 		depth--;
 		if (depth>0){
 #pragma omp task
-			quick_sort_noidx_omp_kernel(a,l,j-1,depth);
+			qs_noidx(a,l,j-1,depth);
 #pragma omp task
-			quick_sort_noidx_omp_kernel(a,j+1,r,depth);
+			qs_noidx(a,j+1,r,depth);
 		} else {
 			quick_sort_noidx_loop(a+l,j-l);
 			quick_sort_noidx_loop(a+j+1,r-j);
-//			quick_sort_noidx_omp_kernel(a,l,j-1,depth);
-//			quick_sort_noidx_omp_kernel(a,j+1,r,depth);
+//			qs_noidx(a,l,j-1,depth);
+//			qs_noidx(a,j+1,r,depth);
 		}
 	}
 }
 
-static
-void quick_sort_widx_omp_kernel(double *a, int *idx, int l, int r, int depth)
+//static
+void qs_widx(double *a, int *idx, int l, int r, int depth)
 {
 	int i,j;
 	double a0;
@@ -371,44 +379,24 @@ void quick_sort_widx_omp_kernel(double *a, int *idx, int l, int r, int depth)
 		depth--;
 		if (depth>0){
 #pragma omp task
-			quick_sort_widx_omp_kernel(a,idx,l,j-1,depth);
+			qs_widx(a,idx,l,j-1,depth);
 #pragma omp task
-			quick_sort_widx_omp_kernel(a,idx,j+1,r,depth);
+			qs_widx(a,idx,j+1,r,depth);
 		} else {
 			quick_sort_widx_loop(a+l,idx+l,j-l);
 			quick_sort_widx_loop(a+j+1,idx+j+1,r-j);
-//			quick_sort_widx_omp_kernel(a,idx,l,j-1,depth);
-//			quick_sort_widx_omp_kernel(a,idx,j+1,r,depth);
+//			qs_widx(a,idx,l,j-1,depth);
+//			qs_widx(a,idx,j+1,r,depth);
 		}
 	}
 }
 
-/* sequential version */
-void quick_sort_noidx_seq(double *a, int n)
-{
-#ifdef _QS_FAST_
-	quick_sort_noidx_loop(a,n);
-#else
-	quick_sort_noidx_recursive(a,0,n-1);
-#endif
-}
-
-void quick_sort_widx_seq(double *a, int *idx, int n)
-{
-#ifdef _QS_FAST_
-	quick_sort_widx_loop(a,idx,n);
-#else
-	quick_sort_widx_recursive(a,idx,0,n-1);
-#endif
-}
-
-/* openmp version */
 void quick_sort_noidx_omp(double *a, int n)
 {
 #pragma omp parallel
 	{
 #pragma omp single nowait
-	quick_sort_noidx_omp_kernel(a,0,n-1,MAX_DEPTH);
+	qs_noidx(a,0,n-1,MAX_DEPTH);
 	}
 }
 
@@ -417,49 +405,6 @@ void quick_sort_widx_omp(double *a, int *idx, int n)
 #pragma omp parallel
 	{
 #pragma omp single nowait
-	quick_sort_widx_omp_kernel(a,idx,0,n-1,MAX_DEPTH);
+	qs_widx(a,idx,0,n-1,MAX_DEPTH);
 	}
-}
-
-/* global interface */
-void quick_sort1(double *a, int n)
-{
-#ifdef _OPENMP
-
-#pragma omp parallel
-	{
-#pragma omp single nowait
-	quick_sort_noidx_omp_kernel(a,0,n-1,MAX_DEPTH);
-	}
-
-#else
-
-#ifdef _QS_FAST_
-	quick_sort_noidx_loop(a,n);
-#else
-	quick_sort_noidx_recursive(a,0,n-1);
-#endif
-
-#endif
-}
-
-void quick_sort2(double *a, int *idx, int n)
-{
-#ifdef _OPENMP
-
-#pragma omp parallel
-	{
-#pragma omp single nowait
-	quick_sort_widx_omp_kernel(a,idx,0,n-1,MAX_DEPTH);
-	}
-
-#else
-
-#ifdef _QS_FAST_
-	quick_sort_widx_loop(a,idx,n);
-#else
-	quick_sort_widx_recursive(a,idx,0,n-1);
-#endif
-
-#endif
 }
