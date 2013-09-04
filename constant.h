@@ -1,3 +1,6 @@
+#ifndef _CONSTANT_H_
+#define _CONSTANT_H_
+
 #define GRAV 6.67384e-11
 #define MSUN 1.98855e30
 #define PC   3.08567758e16
@@ -10,3 +13,5 @@
 #define R_SUN 4.6491e-3
 #define PI 3.14159265358979323846
 #define TWO_PI (2*PI)
+
+#endif

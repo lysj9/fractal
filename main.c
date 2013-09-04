@@ -128,7 +128,7 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 	if (0==nbin){
-		if ( fbin<0 || fbin>1 ){
+		if (fbin<0 || fbin>1) {
 			fprintf(stderr,"binary fraction wrong!\n");
 			exit(1);
 		}
@@ -164,8 +164,6 @@ int main(int argc, char *argv[])
 //	sort_mass();
 	N_node = N_star - nbin;
 	fractal(N_node,D,mlow,mhigh,star);
-	i=0;
-	printf("%lf %lf %lf %lf %lf\n",star[i].m,star[i].x,star[i].vx,star[i].vy,star[i].vz);
 
 	t_end=clock();
 	t_cost=(double)(t_end-t_start)/CLOCKS_PER_SEC;
@@ -287,6 +285,7 @@ int main(int argc, char *argv[])
 	output_nbody6(outname,N_star,nbin,r2_sort,seed,r_virial,m_mean,mlow,mhigh,q,NNBMAX,RS0);
 
 	// output read-in informations
+#ifdef LOG_INFO
 	fprintf(stderr,"\n==== input information: ====\n");
 	fprintf(stderr,"random seed=%d\n",abs(seed));
 	fprintf(stderr,"%d stars in total, include %d single stars and %d pairs of binaries\n",N_star,N_star-2*nbin,nbin);
@@ -312,6 +311,7 @@ int main(int argc, char *argv[])
 	fprintf(stderr,"NNBMAX = %d\n",NNBMAX);
 	fprintf(stderr,"RS0    = %lf [NBODY UNIT]\n",RS0);
 	fprintf(stderr,"==== nbody6 information: ====\n");
+#endif
 
 	// output important informations to log file
 	/* */

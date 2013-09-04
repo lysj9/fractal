@@ -31,9 +31,11 @@ void fractal(int StarNum, double D, double mlow, double mhigh, struct vector_s *
 	double xb;
 	double norm;
 	double norm0[s];
-	double a1;
+	double a1[s];
 	alpha[0] = 1.3;
 	alpha[1] = 2.3;
+	a1[0] = 1 - alpha[0];
+	a1[1] = 1 - alpha[1];
 	mb[0] = mlow;
 	mb[1] = 0.5;
 	mb[2] = mhigh;
@@ -55,18 +57,15 @@ void fractal(int StarNum, double D, double mlow, double mhigh, struct vector_s *
 	}
 
 	/* normalize and get weight for these two parts - xb */
-	a1 = 1 - alpha[0];
-	norm0[0] = (pow(mb[0]/mb[1], 1-alpha[1]) - 1) / (1-alpha[1]);
-	a1 = 1 - alpha[1];
-	norm0[1] = (pow(mb[2]/mb[1],a1) - 1) / a1;
+	norm0[0] = -(pow(mb[0]/mb[1], a1[0]) - 1) / a1[0];
+	norm0[1] =  (pow(mb[2]/mb[1], a1[1]) - 1) / a1[1];
 	norm = 1./(norm0[0] + norm0[1]);
 	xb = norm0[0]*norm;
 	/* each part of IMF follows pow law distribution */
 	/* normalization factor */
-	double pow_norm1,pow_norm2,pow_norm;
-	double m_norm;
-	pow_norm1 = pow(mb[1]/mb[0], 1-alpha[1]) - 1;
-	pow_norm2 = pow(mb[2]/mb[1], 1-alpha[2]) - 1;
+	double pow_norm1,pow_norm2;
+	pow_norm1 = pow(mb[1]/mb[0], a1[0]) - 1;
+	pow_norm2 = pow(mb[2]/mb[1], a1[1]) - 1;
 
 	int numc=1;
 	struct node *child,*parent,*headc,*headp;
@@ -155,15 +154,10 @@ void fractal(int StarNum, double D, double mlow, double mhigh, struct vector_s *
 
 					// generate the mass of sub-nodes:
 					if (randomz() < xb) {
-						m_norm = mb[0];
-						pow_norm = pow_norm1;
-						a1 = 1 - alpha[0];
+						m = mb[0] * pow(pow_norm1*randomz()+1, 1/a1[0]);
 					} else {
-						m_norm = mb[1];
-						pow_norm = pow_norm2;
-						a1 = 1 - alpha[1];
+						m = mb[1] * pow(pow_norm2*randomz()+1, 1/a1[1]);
 					}
-					m = m_norm * pow(pow_norm*randomz()+1, 1/a1);
 					// m = makemass(mlow,mhigh);
 						//	may be used some day...
 
@@ -189,8 +183,6 @@ void fractal(int StarNum, double D, double mlow, double mhigh, struct vector_s *
 //					vnoise = pow( 1+r2,b/2 );
 						//	r=1, v_sigma=v1, so we set v_sigma(r)=<v_sigma>+(1+r^2)^b/2;
 					v = gaussrand(0.0,vnoise);
-					printf("v = %lf, %lf\n",v,gaussrand_dbl(0.0,vnoise));
-					exit(0);
 						//	v is the velocity disperion;
 					vz  = v*theta;
 					vxy = sqrt(v*v - vz*vz);
@@ -251,12 +243,12 @@ void fractal(int StarNum, double D, double mlow, double mhigh, struct vector_s *
 		vnoise /= 2;
 	}
 	fprintf(stderr,"Generating finished!\n");
-	fprintf(stderr,"%d generations\n",generation);
+	fprintf(stderr,"%d generations, %d star candidates\n",generation,numc);
 	fprintf(stderr,"delta, rnoise, vnoise: %lf %lf %lf\n",delta,rnoise,vnoise);
 
 	struct vector_s *all_star;
 	child = headc->next;
-	all_star = (struct vector_s*) malloc ( numc*sizeof(struct vector_s) );
+	all_star = (struct vector_s*) malloc (numc*sizeof(struct vector_s));
 	if (NULL == all_star){
 		fprintf(stderr,"fractal: malloc all_star failed!\n");
 		exit(-1);
@@ -276,11 +268,11 @@ void fractal(int StarNum, double D, double mlow, double mhigh, struct vector_s *
 	}
 
 	int *idx,*staridx;
-	if ( NULL == (idx = (int*) malloc ( numc*sizeof(int) )) ){
+	if ( NULL == (idx = (int*) malloc (numc*sizeof(int))) ){
 		fprintf(stderr,"fractal: malloc idx failed!\n");
 		exit(-1);
 	}
-	if ( NULL == (staridx = (int*) malloc ( numc*sizeof(int) )) ){
+	if ( NULL == (staridx = (int*) malloc (numc*sizeof(int))) ){
 		fprintf(stderr,"fractal: malloc staridx failed!\n");
 		exit(-1);
 	}
@@ -295,8 +287,6 @@ void fractal(int StarNum, double D, double mlow, double mhigh, struct vector_s *
 	for (i=0;i<StarNum;++i) {
 		star[i] = all_star[ staridx[i] ];
 	}
-	i=0;
-	printf("%lf %lf %lf %lf %le\n",star[i].m,star[i].x,star[i].vx,star[i].vy,star[i].vz);
 	fprintf(stderr,"...random choose finished!\n");
 
 	free(all_star);

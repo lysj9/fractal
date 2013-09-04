@@ -77,6 +77,39 @@ double kroupa_IMF(double ml, double mh)
 	return m;
 }
 
+/* star mass: 0.08 <= ml < 0.5 < mh */
+double kroupa_IMF2(double ml, double mh)
+{
+	double m;
+	double mb=0.5;
+	double norm0[2];
+	double norm;
+	double alpha[2];
+	double a1[2];
+	static double xb;
+	static double pow_norm1,pow_norm2;
+	static int first=1;
+	alpha[0] = 1.3;
+	alpha[1] = 2.3;
+	a1[0] = 1 - alpha[0];
+	a1[1] = 1 - alpha[1];
+	if (first) {
+		norm0[0] = -(pow(ml/mb, a1[0]) - 1) / a1[0];
+		norm0[1] =  (pow(mh/mb, a1[1]) - 1) / a1[1];
+		norm = 1./(norm0[0] + norm0[1]);
+		xb = norm0[0]*norm;
+		pow_norm1 = pow(mb/ml, a1[0]) - 1;
+		pow_norm2 = pow(mh/mb, a1[1]) - 1;
+		first = 0;
+	}
+	if (randomz() < xb) {
+		m = ml * pow(pow_norm1*randomz()+1, 1/a1[0]);
+	} else {
+		m = mb * pow(pow_norm2*randomz()+1, 1/a1[1]);
+	}
+	return m;
+}
+
 double IMF(int s, double *a, double *m0)
 {
 	/* s sections, ml = m0[0], mh = m0[s], m0[i] < m0[i+1] */
