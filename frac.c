@@ -249,7 +249,7 @@ void fractal(int StarNum, double D, double mlow, double mhigh, struct vector_s *
 
 		delta  /= 2;
 		rnoise /= 2;
-		vnoise /= 2;
+//		vnoise /= 2;
 	}
 	fprintf(stderr,"Generating finished!\n");
 	fprintf(stderr,"%d generations, %d star candidates\n",generation,numc);
