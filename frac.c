@@ -103,16 +103,18 @@ void fractal(int StarNum, double D, double mlow, double mhigh, struct vector_s *
 	headp->next = NULL;
 
 
-	int i,j,generation=0;
-	double b = -0.5;		//	pow-index of velocity-radius;
-	double mcoefficient=1;	//	the coherent of velocity/momentum/kinatic;
+	int i,j;
+	int generation=0;
+	/* velocity profile */
+	int v_profile=1;
+	double b = -0.5;		/* pow-index of velocity-radius; */
+	/* coherent of velocity/momentum/kinetic */
+	int coherent_type=1;
+	double mcoefficient=1;	/* coherent coefficient */
 	double x,y,z,vx,vy,vz;
-	double r2,v,v0,v1,vxy,theta,phi;
-//	double radius2;
+	double v,vxy,theta,phi;
+	double r2;
 	double delta,rnoise,vnoise;
-	v0 = 1.0;
-	v1 = pow(1+1,b/2);
-//	radius2 = 1.0*1.0;
 	delta = 0.5;
 	rnoise = 0.1;
 	vnoise = 1.0;
@@ -176,26 +178,41 @@ void fractal(int StarNum, double D, double mlow, double mhigh, struct vector_s *
 					// generate the velocity of sub-nodes:
 					theta = -1.0 + 2.0*randomz();
 					phi   = TWO_PI*randomz();
-					v0 = 2*v1;
-						//	v0 is a constant for every particle everywhere
-//					v0 = pow( 1+r2,b/2 )+v1;
-						//	r=1, v_sigma=v1, so we set v_sigma(r)=<v_sigma>+(1+r^2)^b/2;
-//					vnoise = pow( 1+r2,b/2 );
-						//	r=1, v_sigma=v1, so we set v_sigma(r)=<v_sigma>+(1+r^2)^b/2;
+
+					switch (v_profile) {
+						case '1':
+							vnoise *= 1;
+							//	v_sigma is a constant for every particle everywhere
+							break;
+						case '2':
+							vnoise *= pow(1+r2,b/2);
+							//	r=1, v_sigma=v1, so we set v_sigma(r)=<v_sigma>+(1+r^2)^b/2;
+							break;
+						default:
+							vnoise *= 1;
+							break;
+					}
 					v = gaussrand(0.0,vnoise);
-						//	v is the velocity disperion;
 					vz  = v*theta;
 					vxy = sqrt(v*v - vz*vz);
-//					mcoefficient = 1;					//	coherent of velocity
-//					mcoefficient = parent->m/m;			//	coherent of momentum
-//					mcoefficient = sqrt(parent->m/m);	//	coherent of kinetic
+					switch (coherent_type) {
+						case '1':
+							mcoefficient = 1;                   /* coherent of velocity */
+							break;
+						case '2':
+							mcoefficient = parent->m / m;       /* coherent of momentum */
+							break;
+						case '3':
+							mcoefficient = sqrt(parent->m / m); /* coherent of kinetic */
+							break;
+						default:
+							mcoefficient = 1;
+							break;
+					}
 
 					vx  = parent->vx*mcoefficient + vxy * cos(phi);
 					vy  = parent->vy*mcoefficient + vxy * sin(phi);
 					vz += parent->vz*mcoefficient;
-//					vx  = parent->vx*mcoefficient + randomz(-1,1);
-//					vy  = parent->vy*mcoefficient + randomz(-1,1);
-//					vz  = parent->vz*mcoefficient + randomz(-1,1);
 
 					if (NULL == child->next) {
 #ifdef USE_MEMPOOL
@@ -214,18 +231,14 @@ void fractal(int StarNum, double D, double mlow, double mhigh, struct vector_s *
 
 					child->m  = m;
 
-//					child->x  = x+rnoise*randomz(-1,1);
-//					child->y  = y+rnoise*randomz(-1,1);
-//					child->z  = z+rnoise*randomz(-1,1);
-					child->x  = x+gaussrand(0,rnoise);
-					child->y  = y+gaussrand(0,rnoise);
-					child->z  = z+gaussrand(0,rnoise);
+					child->x  = gaussrand(x,rnoise);
+					child->y  = gaussrand(y,rnoise);
+					child->z  = gaussrand(z,rnoise);
 
 					child->vx = vx;
 					child->vy = vy;
 					child->vz = vz;
 
-					//printf("m = %lf, x = %lf, vx = %lf\n",m,x,vx);
 					numc++;
 //					printf("numc=%d\n",numc);
 				}
@@ -233,10 +246,6 @@ void fractal(int StarNum, double D, double mlow, double mhigh, struct vector_s *
 			parent = parent->next;
 		}
 		generation++;
-//		if ( generation<8 ){
-//			delta  /= 2;
-//			rnoise /= 2;
-//		}
 
 		delta  /= 2;
 		rnoise /= 2;
