@@ -113,10 +113,12 @@ void fractal(int StarNum, double D, double mlow, double mhigh, struct vector_s *
 	double mcoefficient=1;	/* coherent coefficient */
 	double x,y,z,vx,vy,vz;
 	double v,vxy,theta,phi;
+	double v0; 				/* velocity dispersiom */
 	double r2;
 	double delta,rnoise,vnoise;
 	delta = 0.5;
 	rnoise = 0.1;
+	v0 = 1.0;
 	vnoise = 1.0;
 	while (numc < 100*StarNum) {
 		parent = headp;
@@ -181,15 +183,15 @@ void fractal(int StarNum, double D, double mlow, double mhigh, struct vector_s *
 
 					switch (v_profile) {
 						case '1':
-							vnoise *= 1;
+							//vnoise = v0;
 							//	v_sigma is a constant for every particle everywhere
 							break;
 						case '2':
-							vnoise *= pow(1+r2,b/2);
+							vnoise = v0 * pow(1+r2,b/2);
 							//	r=1, v_sigma=v1, so we set v_sigma(r)=<v_sigma>+(1+r^2)^b/2;
 							break;
 						default:
-							vnoise *= 1;
+							//vnoise = v0;
 							break;
 					}
 					v = gaussrand(0.0,vnoise);
