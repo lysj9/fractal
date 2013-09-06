@@ -101,7 +101,13 @@ double nbody_scale(int N_node, double q, struct vector_s *star, int *nnbmax_out,
 */
 
 	rscale = Ep/Ep_nbody;
-	vscale = sqrt(Ek_nbody/Ek);
+	if (Ek == 0) {
+		vscale = 1;
+		q = 0;
+		fprintf(stderr,"scale: kinetic energy = 0! no scale for velocity!\n");
+	} else {
+		vscale = sqrt(Ek_nbody/Ek);
+	}
 	fprintf(stderr,"scale: rscale, vscale: %lf, %lf\n",rscale,vscale);
 
 	*rs0_out = RS0*rscale;

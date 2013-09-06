@@ -115,7 +115,6 @@ int main(int argc, char *argv[])
 		if (NULL==FP){
 			fprintf(stderr,"initial file fort.10 open failed...\n");
 			exit(-1);
-//			FP=stdout;
 		}
 	}
 	
