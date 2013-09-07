@@ -13,9 +13,18 @@
 #include "output.h"
 #include "randomz.h"
 #include "scale.h"
+#include "get_wtime.h"
 
 int main(int argc, char *argv[])
 {
+	double t_start,t_end; 	// program time used
+	double t_cost;
+
+	double t0,t1; 			// function time used
+	double tc;
+
+	int i,j;
+
 	int seed=0; // random seed (=0 choose from system time)
 	int N_star=1000; // total star number
 	int N_node; // node number (single stars + pairs of binaries)
@@ -53,7 +62,14 @@ int main(int argc, char *argv[])
 	int c;
 	extern char *opt_str;
 	extern char *opt_arr[16];
-	while ( ( c=getopt(argc,argv,param_str) ) != -1 ){
+
+/* program starts: */
+	t_start = get_wtime();
+
+/*	******** ******** ******** ******** ******** ******** ********	*/
+/* input parameters treatment */
+/*	******** ******** ******** ******** ******** ******** ********	*/
+	while ( ( c=getopt(argc,argv,param_str) ) != -1 ) {
 		switch(c){
 			case 's':
 				seed = atoi(opt_str);
@@ -110,7 +126,7 @@ int main(int argc, char *argv[])
 				break;
 		}
 	}
-	if (!FP){
+	if (!FP) {
 		FP=fopen("fort.10","w");
 		if (NULL==FP){
 			fprintf(stderr,"initial file fort.10 open failed...\n");
@@ -126,7 +142,7 @@ int main(int argc, char *argv[])
 		fprintf(stderr,"binary number wrong!\n");
 		exit(1);
 	}
-	if (0==nbin){
+	if (0==nbin) {
 		if (fbin<0 || fbin>1) {
 			fprintf(stderr,"binary fraction wrong!\n");
 			exit(1);
@@ -143,32 +159,37 @@ int main(int argc, char *argv[])
 	}
 	// individual binaries + single stars + c.m. binaries
 	struct vector_s *star = (struct vector_s*) malloc ( (N_star+nbin)*sizeof(struct vector_s) );
-	if (NULL==star){
+	if (NULL==star) {
 		fprintf(stderr,"malloc *star error\n");
 		exit(-1);
 	}
 	double *mass = (double*) malloc ( (N_star+nbin)*sizeof(double) );
-	if (NULL==mass){
+	if (NULL==mass) {
 		fprintf(stderr,"malloc *mass error\n");
 		exit(-1);
 	}
 
-	int i,j;
-	clock_t t_start,t_end;
-	double t_cost;
-	t_start=clock();
 	randomz_seed(seed);
+/*	******** ******** ******** ******** ******** ******** ********	*/
 
+/*	******** ******** ******** ******** ******** ******** ********	*/
+/*	generate fractal distributed star cluster */
+/*	******** ******** ******** ******** ******** ******** ********	*/
+	t0 = get_wtime();
 //	mass_pair(N_star,nbin,mass);
 //	sort_mass();
 	N_node = N_star - nbin;
 	fractal(N_node,D,mlow,mhigh,star);
 
-	t_end=clock();
-	t_cost=(double)(t_end-t_start)/CLOCKS_PER_SEC;
-	fprintf(stderr,"\ngenerate fractal cluster use %lf seconds...\n",t_cost);
-	t_start=clock();
+	t1 = get_wtime();
+	tc = t1 - t0;
+	fprintf(stderr,"\ngenerate fractal cluster use %lf seconds...\n",tc);
+/*	******** ******** ******** ******** ******** ******** ********	*/
 
+/*	******** ******** ******** ******** ******** ******** ********	*/
+/*	generate binaries */
+/*	******** ******** ******** ******** ******** ******** ********	*/
+	t0 = get_wtime();
 	double Mnode=0;
 	double Mbin=0;
 	for (i=0;i<N_node;++i) Mnode += star[i].m;
@@ -197,6 +218,15 @@ int main(int argc, char *argv[])
 	}
 	fprintf(stderr,"before eigenevolution: Mnode=%lf, Mbin=%lf, Mtot=%lf\n",Mnode,Mbin,Mnode+Mbin);
 
+	t1 = get_wtime();
+	tc = t1 - t0;
+	fprintf(stderr,"\ngenerate binaries use %lf seconds...\n",tc);
+/*	******** ******** ******** ******** ******** ******** ********	*/
+
+/*	******** ******** ******** ******** ******** ******** ********	*/
+/*	scale to NBODY-UNIT */
+/*	******** ******** ******** ******** ******** ******** ********	*/
+	t0 = get_wtime();
 	// scale (node) to standard NBODY-UNIT,
 	// i.e. total energy = -0.25, virial ratio = q
 	int NNBMAX;
@@ -207,25 +237,17 @@ int main(int argc, char *argv[])
 	// get the scale informations (rscale, vscale & tscale)
 	double *r2_sort;
 	r2_sort = (double*) malloc(N_node*sizeof(double));
+	if (NULL==r2_sort) {
+		fprintf(stderr,"malloc *r2_sort error\n");
+		exit(-1);
+	}
 	int *idx;
 	idx = (int*) malloc(N_node*sizeof(int));
-	sort_radius(N_node,star+2*nbin,r2_sort,idx);
-	/*
-	if (r_virial>0) {
-		rscale = r_virial/rvir_nbody;
-		r_hm_nbody = get_radius(N_star-nbin,star+2*nbin,0.5);
-		r_hm = r_hm_nbody*rscale;
-	} else {
-		if (r_tr<=0) {
-			r_virial = 1.0;
-			rscale = r_virial/rvir_nbody;
-			r_tr = r_tr_nbody*rscale;
-		} else {
-			rscale = r_tr/r_tr_nbody;
-			r_virial = rvir_nbody*rscale;
-		}
+	if (NULL==idx) {
+		fprintf(stderr,"malloc *idx error\n");
+		exit(-1);
 	}
-	*/
+	sort_radius(N_node,star+2*nbin,r2_sort,idx);
 	r_tr_nbody = get_radius(N_node,star+2*nbin,truncate,r2_sort,idx);
 	if (0.5!=truncate) {
 		r_hm_nbody = get_radius(N_node,star+2*nbin,0.5,r2_sort,idx);
@@ -249,7 +271,9 @@ int main(int argc, char *argv[])
 	v_virial = sqrt(Mtot/r_virial); // v_virial*VSC in [m/s]
 	vscale = v_virial*VSC;
 	tscale = rscale/vscale*(PC/MYR);
-//	tscale = sqrt(r_virial*r_virial*r_virial/Mtot)*TSC;
+	/* another way:
+	 * tscale = sqrt(r_virial*r_virial*r_virial/Mtot)*TSC;
+	 * */
 
 	// scale binaries to cluster frame, in NBODY-UNIT
 	for (i=0;i<2*nbin;++i) {
@@ -265,13 +289,16 @@ int main(int argc, char *argv[])
 		star[i].vz = star[N_star+i/2].vz + star[i].vz/v_virial;
 	}
 
-	t_end=clock();
-	t_cost=(double)(t_end-t_start)/CLOCKS_PER_SEC;
-	fprintf(stderr,"\nscale use %lf seconds...\n",t_cost);
+	t1 = get_wtime();
+	tc = t1 - t0;
+	fprintf(stderr,"\nscale use %lf seconds...\n",tc);
+/*	******** ******** ******** ******** ******** ******** ********	*/
+	
+/*	******** ******** ******** ******** ******** ******** ********	*/
+/*	output */
+/*	******** ******** ******** ******** ******** ******** ********	*/
 	// output stars
 	for (i=0;i<N_star+nbin;++i){
-//		fprintf(FP,"%d %lf %lf %lf %lf %lf %lf %lf\n",
-//				i,star[i].m,
 		fprintf(FP,"%24.16e %24.16e %24.16e %24.16e %24.16e %24.16e %24.16e\n",
 				star[i].m,
 				star[i].x,star[i].y,star[i].z,
@@ -313,7 +340,6 @@ int main(int argc, char *argv[])
 #endif
 
 	// output important informations to log file
-	/* */
 	FP = fopen(outlog,"w");
 	if (NULL == FP){
 		fprintf(stderr,"%s open failed...\n",outlog);
@@ -344,10 +370,19 @@ int main(int argc, char *argv[])
 	fprintf(FP,"RS0    = %lf [NBODY UNIT]\n",RS0);
 	fprintf(FP,"==== nbody6 information: ====\n");
 	fclose(FP);
-	/* */
+/*	******** ******** ******** ******** ******** ******** ********	*/
 
+/*	******** ******** ******** ******** ******** ******** ********	*/
+/*	memory management */
+/*	******** ******** ******** ******** ******** ******** ********	*/
+	free(r2_sort);
+	free(idx);
 	free(star);
 	free(mass);
 
+	t_end = get_wtime();
+	t_cost = t_end - t_start;
+	fprintf(stderr,"\nin total: use %lf ms, %lf seconds...\n",1.e3*t_cost,t_cost);
+/*	******** ******** ******** ******** ******** ******** ********	*/
 	return 0;
 }

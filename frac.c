@@ -4,6 +4,7 @@
 #include "type.h"
 #include "constant.h"
 
+#include "get_wtime.h"
 #include "mempool.h"
 #include "randomz.h"
 #include "randqueue.h"
@@ -292,12 +293,18 @@ void fractal(int StarNum, double D, double mlow, double mhigh, struct vector_s *
 		staridx[i] = i;
 	}
 	fprintf(stderr,"Choose %d particles from %d leaves randomly\n",StarNum,numc);
+	double t0,t1;
+	double tc;
+	t0 = get_wtime();
 	double eps=5e-4;
 //	randqueue(numc,idx,StarNum,staridx);
 	randqueue2(numc,idx,StarNum,staridx,all_star,eps);
 	for (i=0;i<StarNum;++i) {
 		star[i] = all_star[ staridx[i] ];
 	}
+	t1 = get_wtime();
+	tc = t1 - t0;
+	fprintf(stderr,"restrict randomly choosing use %lf ms, %lf s\n",1.e3*tc,tc);
 	fprintf(stderr,"...random choose finished!\n");
 
 	free(all_star);

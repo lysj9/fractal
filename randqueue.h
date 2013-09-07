@@ -4,10 +4,6 @@
 #include "type.h"
 
 void randqueue2(int n, int *idx, int randnum, int *randidx, struct vector_s *star, double eps);
-
-void randqueue( int        n,
-				int     *idx,
-				int  randnum,
-				int *randidx );
+void randqueue(int n, int *idx, int randnum, int *randidx);
 
 #endif

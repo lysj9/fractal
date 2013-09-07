@@ -21,11 +21,8 @@ double nbody_scale(int N_node, double q, struct vector_s *star, int *nnbmax_out,
 	// scale to totle energy = -0.25
 	double Ep_nbody = -0.25/(1-q);
 	double Ek_nbody = 0.25*q/(1-q);
-//	double rvir_nbody = 0.5/(1-q); // virial radius in nbody-unit
-//	double vvir_nbody = 0.5*q/(1-q); // mean square velocity in nbody-unit
 	double r2,rscale,vscale;
 	double *rij;
-//	rij = (double*) malloc (N_node*sizeof(double));
 
 	struct vector_s centre={0,0,0,0,0,0,0};
 	// centre of mass correction

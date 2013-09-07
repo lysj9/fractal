@@ -57,9 +57,7 @@ double quick_select_widx(double *a, int *idx, int k, int n, int *ik)
 	int i,j;
 	int l=0,r=n-1;
 	double a0;
-//	double ftemp;
 	int id0;
-//	int itemp;
 	double ak;
 
 	while (1){
