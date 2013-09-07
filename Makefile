@@ -22,11 +22,14 @@ $(C_OBJS) : %.o : %.c Makefile
 
 -include $(DEPS)
 
+#$(C_DEPS) : %.d : %.c
+#	@set -e; rm -f $@; \
+#		$(CC) -MM $< > $@.$$$$; \
+#		sed 's/\($*\)\.o[ :]*/\1.o $@ : /g' < $@.$$$$ > $@; \
+#		rm -f $@.$$$$
 $(C_DEPS) : %.d : %.c
 	@set -e; rm -f $@; \
-		$(CC) -MM $< > $@.$$$$; \
-		sed 's/\($*\)\.o[ :]*/\1.o $@ : /g' < $@.$$$$ > $@; \
-		rm -f $@.$$$$
+		$(CC) -MM $< | sed 's/\($*\)\.o[ :]*/\1.o $@ : /g' > $@
 
 .PHONY 			: 	clean
 clean:

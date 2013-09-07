@@ -2,6 +2,7 @@
 *.d
 *.obj
 *.exe
+a.out
 .*.swp
 *.input
 *.log
