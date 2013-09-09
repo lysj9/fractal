@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
 	int nbin=0; // binary number
 	double fbin=0.0; // binary fraction
 	double rvir_nbody; // virial radius in NBODY-UNIT
-	double r_virial=-1.0; // virial radius (in [pc])
+	double r_virial=0; // virial radius (in [pc])
 	double v_virial; // v_virial*VSC is the mean velocity (in [m/s])
 					 // v_virial = sqrt(Mtot/r_virial);
 	double truncate=-1.0;
@@ -46,6 +46,7 @@ int main(int argc, char *argv[])
 	double vscale; // vscale = v_virial*VSC
 	double tscale; // tscale = rscale/vscale*(PC/MYR)
 				   // tscale = sqrt(r_virial^3/Mtot)*TSC
+	double rs_estimated; // estimated rscale;
 	FILE *FP=NULL;
 	char *outname="a.input";
 	char *outlog="a.log";
@@ -150,12 +151,16 @@ int main(int argc, char *argv[])
 		nbin = 0.5*N_star*fbin;
 	}
 	rvir_nbody = 2*(1-q);
-	if (r_virial<0) {
+	if (r_virial<=0) {
 		if (truncate<=0 || r_tr<=0) {
 			r_virial=1.0;
 			r_tr=-1.0;
 			truncate=-1.0;
+			rs_estimated=r_virial/rvir_nbody;
 		}
+		rs_estimated=r_tr/rvir_nbody;
+	} else {
+		rs_estimated=r_virial/rvir_nbody;
 	}
 	// individual binaries + single stars + c.m. binaries
 	struct vector_s *star = (struct vector_s*) malloc ( (N_star+nbin)*sizeof(struct vector_s) );
@@ -179,7 +184,7 @@ int main(int argc, char *argv[])
 //	mass_pair(N_star,nbin,mass);
 //	sort_mass();
 	N_node = N_star - nbin;
-	fractal(N_node,D,mlow,mhigh,star);
+	fractal(N_node,D,mlow,mhigh,star,rs_estimated);
 
 	t1 = get_wtime();
 	tc = t1 - t0;

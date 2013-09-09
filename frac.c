@@ -11,7 +11,7 @@
 
 #define PART 8
 
-void fractal(int StarNum, double D, double mlow, double mhigh, struct vector_s *star)
+void fractal(int StarNum, double D, double mlow, double mhigh, struct vector_s *star, double rs_estimated)
 {
 	unsigned long int LEN = sizeof(struct node);
 #ifdef USE_MEMPOOL
@@ -296,7 +296,8 @@ void fractal(int StarNum, double D, double mlow, double mhigh, struct vector_s *
 	double t0,t1;
 	double tc;
 	t0 = get_wtime();
-	double eps=5e-4;
+//	double eps=5e-4;
+	double eps=50./206265*rs_estimated; // minimum separation set to 50 AU
 //	randqueue(numc,idx,StarNum,staridx);
 	randqueue2(numc,idx,StarNum,staridx,all_star,eps);
 	for (i=0;i<StarNum;++i) {
