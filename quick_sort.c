@@ -9,21 +9,10 @@
 #define MAX_DEPTH 11
 
 /*
-#define SWAP(a,b,type) \
-({\
-	type temp;\
-	temp=a;\
-	a=b;\
-	b=temp;\
-})
+#define SWAP(a,b,type) ({type temp; temp=a; a=b; b=temp;})
 */
-#define SWAP(a,b,type) do\
-{\
-	type temp;\
-	temp=a;\
-	a=b;\
-	b=temp;\
-} while(0)
+
+#define SWAP(a,b,type) do {type temp; temp=a; a=b; b=temp;} while(0)
 
 /*
  * 采用递归方式，数组大小小于NN时采用冒泡排序

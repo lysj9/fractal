@@ -1,28 +1,29 @@
-#ifdef __GNUC__
+#if defined(__unix__)
+#include <stdio.h>
 #include <sys/time.h>
-
-#else
-
-#ifdef _OPENMP
+#elif defined(_WIN32)
+#include <windows.h>
+#elif defined(_OPENMP)
 #include <omp.h>
-#endif
+#else
 #include <time.h>
-
 #endif
 
-double get_wtime()
+double get_wtime(void)
 {
-#ifdef __GNUC__
+#if defined(__unix__)
 	struct timeval tv;
 	gettimeofday(&tv,NULL);
 	return tv.tv_sec + 1.e-6 * tv.tv_usec;
-#else
-#ifdef _OPENMP
+#elif defined(_WIN32)
+	LARGE_INTEGER frequency;
+	LARGE_INTEGER t;
+	QueryPerformanceFrequency(&frequency);
+	QueryPerformanceCounter(&t);
+	return 1. * t.QuadPart / frequency.QuadPart;
+#elif defined(_OPENMP)
 	return omp_get_wtime();
 #else
-	clock_t t;
-	t = clock();
-	return 1.*t/CLOCKS_PER_SEC;
-#endif
+	return 1. * clock() / CLOCKS_PER_SEC;
 #endif
 }

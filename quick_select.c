@@ -1,20 +1,8 @@
 /*
-#define SWAP(a,b,type) \
-({\
-	type temp;\
-	temp=a;\
-	a=b;\
-	b=temp;\
-})
+#define SWAP(a,b,type) ({type temp; temp=a; a=b; b=temp;})
 */
 
-#define SWAP(a,b,type) do\
-{\
-	type temp;\
-	temp=a;\
-	a=b;\
-	b=temp;\
-} while(0)
+#define SWAP(a,b,type) do {type temp; temp=a; a=b; b=temp;} while(0)
 
 double quick_select(double *a, int k, int n)
 {
