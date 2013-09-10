@@ -1,4 +1,4 @@
-#if defined(__unix__)
+#if defined(__unix__) || defined(__MACH__) || defined(__GNUC__)
 #include <stdio.h>
 #include <sys/time.h>
 #elif defined(_WIN32)
@@ -11,7 +11,7 @@
 
 double get_wtime(void)
 {
-#if defined(__unix__)
+#if defined(__unix__) || defined(__MACH__) || defined(__GNUC__)
 	struct timeval tv;
 	gettimeofday(&tv,NULL);
 	return tv.tv_sec + 1.e-6 * tv.tv_usec;
