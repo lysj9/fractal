@@ -12,11 +12,11 @@ DEPS 		= 	$(C_DEPS)
 INCL 		= 	type.h func.h constant.h Makefile
 
 CFLAGS 		= 	/Wall /O2 /Qopenmp #-fast
-CFLAGS 	   += 	/D_CRT_SECURE_NO_DEPRECATE
+CFLAGS 	   += 	/D_CRT_SECURE_NO_DEPRECATE /nologo
 LDFLAGS 	= 	/Qopenmp
 
 $(EXEC) 	: 	$(OBJS) Makefile_cygwin
-	$(CC) /Fe$(EXEC) $(OBJS) $(LDFLAGS)
+	$(CC) /nologo /Fe$(EXEC) $(OBJS) $(LDFLAGS)
 
 $(C_OBJS) : %.obj : %.c Makefile_cygwin
 	$(CC) $(CFLAGS) -c /Fo$@ $<
