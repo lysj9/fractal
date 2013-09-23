@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <time.h>
+#include <string.h>
 #include "type.h"
 #include "constant.h"
 
@@ -58,11 +59,11 @@ int main(int argc, char *argv[])
 //	double dtadj=1.0;
 //	double deltat=1.0;
 	
-	char param_str[]="s1n1r1R1t2f1u1l1D1b1B1q1";
+	char dic_str[]="s1:n1:r1:R1:t2:f1:l1:u1:D1:b1:B1:q1";
+	char arg_name[8];
+	char *arg_str[16];
 //	char param_str[]="s1n1r1R1t2f1u1l1D1b1B1q1A1O1";
 	int c;
-	extern char *opt_str;
-	extern char *opt_arr[16];
 
 /* program starts: */
 	t_start = get_wtime();
@@ -70,61 +71,47 @@ int main(int argc, char *argv[])
 /*	******** ******** ******** ******** ******** ******** ********	*/
 /* input parameters treatment */
 /*	******** ******** ******** ******** ******** ******** ********	*/
-	while ( ( c=getopt(argc,argv,param_str) ) != -1 ) {
-		switch(c){
-			case 's':
-				seed = atoi(opt_str);
-				break;
-			case 'n':
-				N_star = atoi(opt_str);
-				break;
-			case 'r':
-				r_virial = atof(opt_str);
-				break;
-			case 'R':
+	while ((c=getopt(argc,argv,arg_name,arg_str,dic_str,"",sizeof(arg_name))) != -1) {
+		if (c==0) {
+			if (strcmp(arg_name,"s") == 0) {
+				seed = atoi(arg_str[0]);
+			} else if (strcmp(arg_name,"n") == 0) {
+				N_star = atoi(arg_str[0]);
+			} else if (strcmp(arg_name,"r") == 0) {
+				r_virial = atof(arg_str[0]);
+			} else if (strcmp(arg_name,"R") == 0) {
 				truncate = 0.5;
-				r_tr = atof(opt_str);
-//				r_hm = atof(opt_str);
-				break;
-			case 't':
-				truncate = atof(opt_arr[0]);
-				r_tr = atof(opt_arr[1]);
-				break;
-			case 'f':
-				if ( (FP=fopen(opt_str,"w")) == NULL ){
-					fprintf(stderr,"can not open %s\n",opt_str);
+				r_tr = atof(arg_str[0]);
+	//			r_hm = atof(arg_str[0]);
+			} else if (strcmp(arg_name,"t") == 0) {
+				truncate = atof(arg_str[0]);
+				r_tr = atof(arg_str[1]);
+			} else if (strcmp(arg_name,"f") == 0) {
+				if ( (FP=fopen(arg_str[0],"w")) == NULL ){
+					fprintf(stderr,"can not open %s\n",arg_str[0]);
 					exit(-1);
 				}
-				break;
-			case 'l':
-				mlow = atof(opt_str);
-				break;
-			case 'u':
-				mhigh = atof(opt_str);
-				break;
-			case 'D':
-				D = atof(opt_str);
-				break;
-			case 'b':
-				nbin = atoi(opt_str);
-				break;
-			case 'B':
-				fbin = atof(opt_str);
-				break;
-			case 'q':
-				q = atof(opt_str);
-				break;
-			/*
-			case 'A':
-				dtadj = atof(opt_str);
-				break;
-			case 'O':
-				deltat = atof(opt_str);
-				break;
-			*/
-			default:	// should not happen
+			} else if (strcmp(arg_name,"l") == 0) {
+				mlow = atof(arg_str[0]);
+			} else if (strcmp(arg_name,"u") == 0) {
+				mhigh = atof(arg_str[0]);
+			} else if (strcmp(arg_name,"D") == 0) {
+				D = atof(arg_str[0]);
+			} else if (strcmp(arg_name,"b") == 0) {
+				nbin = atoi(arg_str[0]);
+			} else if (strcmp(arg_name,"B") == 0) {
+				fbin = atof(arg_str[0]);
+			} else if (strcmp(arg_name,"q") == 0) {
+				q = atof(arg_str[0]);
+			} else {
+				//printf("%d %s\n",c,arg_name);
 				printf("show help:\n");
 				break;
+			}
+		} else {
+			printf("getopt end_stat = %d, arg_name = \"%s\"\n",c,arg_name);
+			printf("show help:\n");
+			exit(1);
 		}
 	}
 	if (!FP) {

@@ -9,7 +9,7 @@ C_DEPS 		= 	$(C_SOURCES:%.c=%.d)
 
 OBJS 		= 	$(C_OBJS)
 DEPS 		= 	$(C_DEPS)
-INCL 		= 	type.h func.h constant.h Makefile
+INCL 		=
 
 CFLAGS 		= 	-W -Wall -O3 -ffast-math -fopenmp
 LDFLAGS 	= 	-lm -fopenmp

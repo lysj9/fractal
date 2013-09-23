@@ -5,186 +5,274 @@
 #include <stdlib.h>
 #include <string.h>
 
-char *opt_str;
-char *opt_arr[16];
+#define MAX_PARAM_LENGTH 256
 
-int checkparam_dic(char *param_dic)
+static
+int get_dic_dim(char *dic_str)
 {
-	int param_num=0,i=-1;
-	if ( param_dic[0]<'A' || \
-			(param_dic[0]>'Z' && param_dic[0]<'a') || \
-			param_dic[0]>'z' ){
-		fprintf(stderr,"checkparam: parameter string ");
-		fprintf(stderr,"should start with 'a-z' or 'A-Z'!\n");
-		exit(-2);
+	int i=0;
+	int dic_dim;
+	if (dic_str[0] == '\0') {
+		dic_dim=0;
+	} else {
+		dic_dim=1;
 	}
-	while ( param_dic[++i] != '\0' ){
-		if ( (param_dic[i]>='A' && param_dic[i]<='Z') || \
-				(param_dic[i]>='a' && param_dic[i]<='z') ){
-			param_num++;
-		} else if ( param_dic[i]<'0' || param_dic[i]>'9' ){
-			fprintf(stderr,"checkparam: illegal parameter strings!\n");
-			exit(-2);
+	while (dic_str[i++] != '\0') {
+		if (dic_str[i] == ':') {
+			dic_dim++;
 		}
 	}
-	return param_num;
+	return dic_dim;
 }
 
-void getparam_dic(char *param_dic,
-		char *option_str, int *option_num)
+static
+int get_long_dic_dim(char *long_dic_str)
 {
-	int i=-1,j=-1;
-	
-	while ( param_dic[++i] != '\0' ){
-		if ( (param_dic[i]>='A' && param_dic[i]<='Z') || \
-				(param_dic[i]>='a' && param_dic[i]<='z') ){
-			option_str[++j] = param_dic[i];
-		} else {
-			option_num[j] = atoi(param_dic+i);
-			if ( option_num[j] > 15 ){
-				fprintf(stderr,"every option should have no more than 16 parameters!\n");
-				exit(-2);
-			}
-			while ( param_dic[i]>='0' && param_dic[i]<='9' ){
-				i++;
-			}
-			i--;
+	int i=0;
+	int long_dic_dim;
+	if (long_dic_str[0] == '\0') {
+		long_dic_dim=0;
+	} else {
+		long_dic_dim=1;
+	}
+	while (long_dic_str[i++] != '\0') {
+		if (long_dic_str[i] == ':') {
+			long_dic_dim++;
 		}
 	}
-	return;
+	return long_dic_dim;
 }
 
-
-int getopt(int argc, char *argv[],
-		char *param_dic)
+static
+int get_param(char *dic_str, int dic_dim, char *param_nam, int *param_num)
 {
-	static char *option_str=NULL;
-	static int  *option_num=NULL;
 	int i;
-	static int firstrun=1;
-	if ( firstrun ){
-	int param_num=checkparam_dic(param_dic);
-	option_str = (char*) malloc ( param_num*sizeof(char) );
-	option_num = (int*)  malloc ( param_num*sizeof(int)  );
-	for ( i=0;i<param_num;++i ) option_num[i]=0;
-	getparam_dic(param_dic,option_str,option_num);
-	firstrun=0;
+	char *str_temp = dic_str;
+	for (i=0;i<dic_dim;++i) {
+		param_nam[i] = str_temp[0];
+		if (param_nam[i] == '-') {
+			fprintf(stderr,"getopt: argument name '-' not supported!\n");
+			return 1;
+		}
+		param_num[i] = atoi(str_temp+1);
+		if (param_num[i] < 0) {
+			fprintf(stderr,"getopt: parameter number %d not supported!\n",param_num[i]);
+			return 1;
+		}
+		str_temp = strchr(str_temp,':') + 1;
 	}
-	
-	static int arg_count=1;
-//	arg_count++;
-		// argument counter, skip 0 which is the command name
-	char *arg_name;
-		// argument(s) name, should be start with "-"
-	static int arg_offset=1;
-		// offset of arg_name[]
-		// skip 1 which should be "-"
-	int param_offset=0;
-		// offset of param_dic[]
-//	int param_flag=false;	// there is no bool type in standard C!
-	int arg_flag=0;
-		// whether the argument is allowed
-	static int narg=0;
-		// number of parameter(s) after argument
-	int narg_temp;
-	static int param_arg=0;
-		// number of argument(s) with parameter(s)
-		// within one "-"
-		// it should be no large than 1
+	return 0;
+}
 
-	int arg_len;	
-
-	if ( arg_count >= argc ){
-		free(option_str);
-		free(option_num);
-		return -1; // end of the arguments
+static
+int get_long_param(char *long_dic_str, int long_dic_dim, char **long_param_nam, int *long_param_num, int max_param_length)
+{
+	int i;
+	int length;
+	char *p;
+	char *str_temp = long_dic_str;
+	for (i=0;i<long_dic_dim;++i) {
+		p = strchr(str_temp,',');
+		length = p - str_temp;
+		if (length > max_param_length) {
+			str_temp[length]='\0';
+			fprintf(stderr,"getopt: parameter \"%s\" length (%d) > max_param_length (%d)\n",str_temp,length,max_param_length);
+			return 1;
+		}
+		strcpy(long_param_nam[i],"");
+		strncat(long_param_nam[i],str_temp,p-str_temp);
+		long_param_num[i] = atoi(p+1);
+		if (long_param_num[i] < 0) {
+			fprintf(stderr,"getopt: parameter number %d not supported!\n",long_param_num[i]);
+			return 1;
+		}
+		str_temp = strchr(str_temp,':') + 1;
 	}
+	return 0;
+}
 
-	arg_name = argv[arg_count];
-	arg_len = strlen(arg_name);
+int getopt(int argc, char *argv[], char *arg_name, char *arg_str[], char *dic_str, char *long_dic_str, int max_param_length)
+{
+	static int FIRST_RUN=1;
+	static int dic_dim;
+	static int long_dic_dim;
+	char arg_temp[MAX_PARAM_LENGTH]="";
+	char error_str[2]="?";
+	static char *param_nam;
+	static int  *param_num;
+	static char **long_param_nam;
+	static int  *long_param_num;
+	static int arg_i=1;
+	int arg_len;
+	int arg_find_flag;
 
+	int j,k;
+	int option_num;
+	static int arg_with_param=0;
+	static int offset=1;
+	static int option_shift=0;
 
-	if ( arg_name[0] != '-' ){
-		fprintf(stderr,"getopt: %s should start with \"-\"\n",arg_name);
-		exit(1);
-	} else {
-	}
+	int end_stat=0;
 
-	if ( arg_name[0] != '-' ){
-		fprintf(stderr,"getopt: %s should start with \"-\"\n",arg_name);
-		exit(1);
-	} else {
-		param_offset = -1;
-		if ( arg_name[arg_offset] != '\0' ){
-			// decide the behavior of this argument which starts with "-"
-//			while ( param_dic[++param_offset] != '\0' ){
-			while ( option_str[++param_offset] != '\0' ){
-				// whether this argument can be found in the param_dic
-//				if ( arg_name[arg_offset] == param_dic[param_offset] ){
-				if ( arg_name[arg_offset] == option_str[param_offset] ){
-					arg_flag=1;
-//					narg_temp = 0;
-//					while ( param_dic[++param_offset] == ':' ){
-//						narg_temp++;
-//					}
-					narg_temp = option_num[param_offset];
-					// how many parameters/options should this parameter have
-					if ( narg_temp>=1 ){
-						narg = narg_temp;
-						// check if the argument has reach its end
-						if ( arg_count+narg >= argc ){
-							fprintf(stderr,"not enough parameter(s) after \"-%c\"!\n",
-									arg_name[arg_offset]);
-							fprintf(stderr,
-									"there should be %d parameters after \"-%c\"!\n",
-								narg,arg_name[arg_offset]);
-							exit(-2);
-						}
-						for ( i=0;i<narg;++i ){
-							if ( argv[arg_count+i+1][0] == '-' ){
-								fprintf(stderr,
-										"getopt: parameter number %d error! ",i);
-								fprintf(stderr,
-										"there should be %d parameters after \"-%c\"!\n",
-									narg,arg_name[arg_offset]);
-								exit(-2);
-							}
-							opt_arr[i] = argv[arg_count+i+1];
-						}
-						opt_str = opt_arr[0];
-						param_arg++;
-					}
-		//			opt_str = opt_arr[0];
-					break;
-				}
-			}
-			if ( !arg_flag ){
-				fprintf(stderr,"getopt: illegal argument \"-%c\"\n",
-						arg_name[arg_offset]);
-				exit(-2);
-			}
-			if ( param_arg>1 ){
-				fprintf(stderr,"getopt: too many arguments in \"%s\"!\n",
-						arg_name);
-				exit(-2);
-			}
-			if ( arg_offset == (arg_len-1) ){
-				// reach the end of this argument
-				arg_count += narg+1;
-					// jump narg arguments (narg parameters/options)
+	if (FIRST_RUN) {
+		FIRST_RUN = 0;
+		if (max_param_length>MAX_PARAM_LENGTH) {
+			fprintf(stderr,"getopt: max_param_length should <= %d\n",MAX_PARAM_LENGTH);
+			return 1;
+		}
+		dic_dim = get_dic_dim(dic_str);
+		long_dic_dim = get_long_dic_dim(long_dic_str);
+		if (dic_dim == 0 && long_dic_dim == 0) {
+			return 1;
+		}
+		param_nam = (char*) malloc(dic_dim*sizeof(char));
+		param_num = (int*)  malloc(dic_dim*sizeof(int));
+		end_stat = get_param(dic_str,dic_dim,param_nam,param_num);
+		if (end_stat == 1) {
+			free(param_nam);
+			free(param_num);
+			return 1;
+		}
 
-				// re-initialize these static values
-				narg=0;
-				arg_offset=1;
-				param_arg=0;
-				
-				return arg_name[arg_len-1];
-			}
-			return arg_name[arg_offset++];
-		} else {
-			fprintf(stderr,"getopt: no argument after \"-\"!\n");
-			exit(-2);
+		long_param_nam = (char**) malloc(long_dic_dim*sizeof(char*));
+		long_param_nam[0] = (char*) malloc(long_dic_dim*max_param_length*sizeof(char));
+		for (j=1;j<long_dic_dim;++j) {
+			long_param_nam[j] = long_param_nam[0] + j * max_param_length;
+		}
+		long_param_num = (int*)  malloc(long_dic_dim*sizeof(int));
+		end_stat = get_long_param(long_dic_str,long_dic_dim,long_param_nam,long_param_num,max_param_length);
+		if (end_stat == 1) {
+			free(param_nam);
+			free(param_num);
+			free(long_param_nam[0]);
+			free(long_param_nam);
+			free(long_param_num);
+			return 1;
 		}
 	}
-//	return '?';
+
+	if (arg_i >= argc) {
+		/* end */
+		free(param_nam);
+		free(param_num);
+		free(long_param_nam[0]);
+		free(long_param_nam);
+		free(long_param_num);
+		return -1;
+	}
+
+	if (strlen(argv[arg_i]) > MAX_PARAM_LENGTH) {
+		fprintf(stderr,"getopt: option \"%s\" not found (too long)!\n",argv[arg_i]);
+		strcpy(arg_name,error_str);
+		free(param_nam);
+		free(param_num);
+		free(long_param_nam[0]);
+		free(long_param_nam);
+		free(long_param_num);
+		return 1;
+	}
+	strcpy(arg_temp,argv[arg_i]);
+	arg_len = strlen(arg_temp);
+
+	arg_find_flag = 0;
+
+	if (arg_temp[0] != '-' || arg_len < 2) {
+		fprintf(stderr,"getopt: %s should start with \"-\", and have at least two characters\n",arg_temp);
+		free(param_nam);
+		free(param_num);
+		free(long_param_nam[0]);
+		free(long_param_nam);
+		free(long_param_num);
+		return 1;
+	} else if (arg_temp[1] == '-') { /* option: --long-option */
+		for (j=0;j<long_dic_dim;++j) {
+			if (strcmp(arg_temp+2,long_param_nam[j]) == 0) {
+				arg_find_flag = 1;
+				strcpy(arg_name,"");
+				strcat(arg_name,long_param_nam[j]);
+				option_num = long_param_num[j];
+				if (arg_i+option_num >= argc) {
+					fprintf(stderr,"getopt: long option \"%s\" not enought parameter(s)\n",arg_name);
+					strcpy(arg_name,error_str);
+					free(param_nam);
+					free(param_num);
+					free(long_param_nam[0]);
+					free(long_param_nam);
+					free(long_param_num);
+					return 1;
+				}
+				for (k=0;k<option_num;++k) {
+					arg_str[k] = argv[arg_i+k+1];
+				}
+				arg_i += option_num + 1;
+				break;
+			}
+		}
+		if (arg_find_flag==0) {
+			fprintf(stderr,"getopt: option \"%s\" not found!\n",arg_temp);
+			strcpy(arg_name,error_str);
+			free(param_nam);
+			free(param_num);
+			free(long_param_nam[0]);
+			free(long_param_nam);
+			free(long_param_num);
+			return 1;
+		}
+	} else { /* option: -s */
+		for (j=0;j<dic_dim;++j) {
+			if (arg_temp[offset] == param_nam[j]) {
+				arg_find_flag = 1;
+				offset++;
+				arg_name[0] = param_nam[j];
+				arg_name[1] = '\0';
+				option_num = param_num[j];
+				if (arg_with_param==0) option_shift = option_num;
+				if (option_num>0) {
+					arg_with_param++;
+					if (arg_with_param>=2) {
+						fprintf(stderr,"getopt: too many arguments in \"%s\"\n",arg_temp);
+						strcpy(arg_name,error_str);
+						free(param_nam);
+						free(param_num);
+						free(long_param_nam[0]);
+						free(long_param_nam);
+						free(long_param_num);
+						return 1;
+					}
+
+					if (arg_i+option_num >= argc) {
+						fprintf(stderr,"getopt: option \"%s\" not enought parameter(s)\n",arg_name);
+						strcpy(arg_name,error_str);
+						free(param_nam);
+						free(param_num);
+						free(long_param_nam[0]);
+						free(long_param_nam);
+						free(long_param_num);
+						return 1;
+					}
+					for (k=0;k<option_num;++k) {
+						arg_str[k] = argv[arg_i+k+1];
+					}
+				}
+				if (offset >= arg_len) {
+					arg_i += option_shift+1;
+					arg_with_param = 0;
+					offset = 1;
+				}
+				break;
+			}
+		}
+		if (arg_find_flag==0) {
+			fprintf(stderr,"getopt: option \"-%c\" not found!\n",arg_temp[offset]);
+			strcpy(arg_name,error_str);
+			free(param_nam);
+			free(param_num);
+			free(long_param_nam[0]);
+			free(long_param_nam);
+			free(long_param_num);
+			return 1;
+		}
+	}
+
+	return 0;
 }

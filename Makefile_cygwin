@@ -9,7 +9,7 @@ C_DEPS 		= 	$(C_SOURCES:%.c=%.d)
 
 OBJS 		= 	$(C_OBJS)
 DEPS 		= 	$(C_DEPS)
-INCL 		= 	type.h func.h constant.h Makefile
+INCL 		= 	
 
 CFLAGS 		= 	/Wall /O2 /Qopenmp #-fast
 CFLAGS 	   += 	/D_CRT_SECURE_NO_DEPRECATE /nologo
@@ -25,10 +25,9 @@ $(C_OBJS) : %.obj : %.c Makefile_cygwin
 
 $(C_DEPS) : %.d : %.c
 	@set -e; rm -f $@; \
-	$(CC) /QMMD $(CFLAGS) /c $<; \
-	sed 's/\(^.*\)\.obj[ :] */\1.obj $@ : /g' $@ | \
-	sed 's/:.*\\/: /g' > $@.$$$$; \
-	mv $@.$$$$ $@
+		$(CC) /QMM /nologo $< | \
+		sed 's/\(^.*\)\.obj[ :] */\1.obj $@ : /g' | \
+		sed 's/:.*\\/: /g' > $@
 
 .PHONY 			: 	clean
 clean:
