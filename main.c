@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
 	double t0,t1; 			// function time used
 	double tc;
 
-	int i,j;
+	int i;
 
 	int seed=0; // random seed (=0 choose from system time)
 	int N_star=1000; // total star number
@@ -155,11 +155,6 @@ int main(int argc, char *argv[])
 		fprintf(stderr,"malloc *star error\n");
 		exit(-1);
 	}
-	double *mass = (double*) malloc ( (N_star+nbin)*sizeof(double) );
-	if (NULL==mass) {
-		fprintf(stderr,"malloc *mass error\n");
-		exit(-1);
-	}
 
 	randomz_seed(seed);
 /*	******** ******** ******** ******** ******** ******** ********	*/
@@ -168,8 +163,6 @@ int main(int argc, char *argv[])
 /*	generate fractal distributed star cluster */
 /*	******** ******** ******** ******** ******** ******** ********	*/
 	t0 = get_wtime();
-//	mass_pair(N_star,nbin,mass);
-//	sort_mass();
 	N_node = N_star - nbin;
 	fractal(N_node,D,mlow,mhigh,star,rs_estimated);
 
@@ -182,33 +175,12 @@ int main(int argc, char *argv[])
 /*	generate binaries */
 /*	******** ******** ******** ******** ******** ******** ********	*/
 	t0 = get_wtime();
-	double Mnode=0;
-	double Mbin=0;
-	for (i=0;i<N_node;++i) Mnode += star[i].m;
-	// order data in NBODY data structure
-	if (nbin>0){
-		// binaries
-		for (i=0;i<nbin;++i){
-			// c.m of binaries
-			star[i+N_star] = star[i];
-		}
-		// single stars
-		for (i=0;i<N_node-nbin;++i){
-			star[N_star-1-i] = star[N_node-1-i];
-		}
-		for (i=0;i<nbin;++i){
-			// individual binaries
-			j = nbin-1-i;
-			star[2*j+1] = star[j];
-			star[2*j] = star[j];
-		}
-		generate_mass(nbin,mlow,mhigh,mass);
-		for (i=0;i<nbin;++i) Mbin += mass[i];
+	// generate binaries and order data in NBODY data structure
+	if (nbin > 0) {
 		// position in [pc], velocity in [m/s/VSC]
 		// position and velocity are in binary frame
-		generate_binaries(N_star,nbin,mass,star);
+		generate_binaries(star,N_star,nbin,mlow,mhigh,0);
 	}
-	fprintf(stderr,"before eigenevolution: Mnode=%lf, Mbin=%lf, Mtot=%lf\n",Mnode,Mbin,Mnode+Mbin);
 
 	t1 = get_wtime();
 	tc = t1 - t0;
@@ -370,7 +342,6 @@ int main(int argc, char *argv[])
 	free(r2_sort);
 	free(idx);
 	free(star);
-	free(mass);
 
 	t_end = get_wtime();
 	t_cost = t_end - t_start;

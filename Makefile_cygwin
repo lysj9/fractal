@@ -2,7 +2,7 @@ CC 		= 	icl -Qlocation,link,"${VCINSTALLDIR}\bin" -Qstd=c99
 
 EXEC 	= 	frac_icl.exe
 
-C_SOURCES 	= 	main.c frac.c generate_binary.c generate_mass.c get_wtime.c getopt.c make_mass.c mempool.c output.c quick_sort.c quick_select.c randomz.c randqueue.c scale.c
+C_SOURCES 	= 	main.c binary_pairing.c frac.c generate_binary.c generate_mass.c get_wtime.c getopt.c make_mass.c mempool.c output.c quick_sort.c quick_select.c randomz.c randqueue.c scale.c
 #C_OBJS 		= 	$(patsubst %.c, %.o, $(C_SOURCES))
 C_OBJS 		= 	$(C_SOURCES:%.c=%.obj)
 C_DEPS 		= 	$(C_SOURCES:%.c=%.d)

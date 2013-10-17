@@ -6,5 +6,6 @@ a.out
 .*.swp
 *.input
 *.log
+*.txt
 fort.10
 log

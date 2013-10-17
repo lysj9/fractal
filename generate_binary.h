@@ -3,6 +3,6 @@
 
 #include "type.h"
 
-void generate_binaries(int N_star, int nbin, double *mass, struct vector_s *star);
+void generate_binaries(struct vector_s *star, int N_star, int nbin, double ml, double mh, int pairing_type);
 
 #endif
