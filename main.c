@@ -275,7 +275,7 @@ int main(int argc, char *argv[])
 
 	// output NBODY6 input files
 //	output_nbody6(outname,N_star,nbin,r2_sort,seed,r_virial,m_mean,mlow,mhigh,q,&NNBMAX,&RS0);
-	output_nbody6(outname,N_star,nbin,r2_sort,seed,r_virial,m_mean,mlow,mhigh,q,NNBMAX,RS0);
+	output_nbody6(outname,N_star,nbin,seed,r_virial,m_mean,mlow,mhigh,q,NNBMAX,RS0);
 
 	// output read-in informations
 #ifdef LOG_INFO

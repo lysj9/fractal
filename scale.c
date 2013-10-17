@@ -8,6 +8,8 @@
 #include "quick_select.h"
 #include "quick_sort.h"
 
+#define SQ(x) ((x) * (x))
+
 double nbody_scale(int N_node, double q, struct star *s, int *nnbmax_out, double *rs0_out)
 {
 	int NNBMAX;
@@ -26,7 +28,7 @@ double nbody_scale(int N_node, double q, struct star *s, int *nnbmax_out, double
 
 	struct star centre={0,{0,0,0,0,0,0}};
 	// centre of mass correction
-	for (i=0;i<N_node;++i){
+	for (i=0;i<N_node;++i) {
 		centre.m += s[i].m;
 		centre.x[0] += s[i].m * s[i].x[0];
 		centre.x[1] += s[i].m * s[i].x[1];
@@ -38,7 +40,7 @@ double nbody_scale(int N_node, double q, struct star *s, int *nnbmax_out, double
 	for (i=0;i<6;++i) centre.x[i] /= centre.m;
 
 	// all stars including binaries and com-binaries
-	for (i=0;i<N_node;++i){
+	for (i=0;i<N_node;++i) {
 		s[i].m /= centre.m;
 		s[i].x[0] -= centre.x[0];
 		s[i].x[1] -= centre.x[1];
@@ -49,48 +51,54 @@ double nbody_scale(int N_node, double q, struct star *s, int *nnbmax_out, double
 	}
 
 	RS0=0;
-//	for (i=0;i<N_node;++i) rij[i] = DBL_MAX;
-//#pragma omp parallel for private(i,j,r2,rij) reduction(-:Ep) reduction(+:RS0) reduction(+:Ek)
+
+#ifdef _OPENMP
 #pragma omp parallel private(rij)
 	{
 	rij = (double*) malloc (N_node*sizeof(double));
 #pragma omp for private(i,j,r2) reduction(-:Ep) reduction(+:RS0) reduction(+:Ek)
-	for (i=0;i<N_node;++i){
-//		rij[i] = DBL_MAX;
-		for (j=0;j<N_node;++j){
+	for (i=0;i<N_node;++i) {
+		rij[i] = DBL_MAX;
+		for (j=0;j<N_node;++j) {
 			if (i!=j) {
-				r2 = (s[i].x[0] - s[j].x[0])*(s[i].x[0] - s[j].x[0]) +\
-					 (s[i].x[1] - s[j].x[1])*(s[i].x[1] - s[j].x[1]) +\
+				r2 = (s[i].x[0] - s[j].x[0])*(s[i].x[0] - s[j].x[0]) +
+					 (s[i].x[1] - s[j].x[1])*(s[i].x[1] - s[j].x[1]) +
 					 (s[i].x[2] - s[j].x[2])*(s[i].x[2] - s[j].x[2]);
 				rij[j] = r2;
 			}
 			if (j>i) Ep -= s[i].m*s[j].m / sqrt(r2);
 		}
 		RS0 += sqrt( quick_select(rij,NNBMAX/5,N_node) );
-//		quick_sort1(rij,N_node);
-//		RS0 += sqrt( rij[NNBMAX/5] );
-
-//		v2 = s[i].vx*s[i].vx + s[i].vy*s[i].vy + s[i].vz*s[i].vz;
-		Ek += s[i].m * (s[i].x[3]*s[i].x[3] + s[i].x[4]*s[i].x[4] + s[i].x[5]*s[i].x[5]);
+		Ek  += s[i].m * (s[i].x[3]*s[i].x[3] + s[i].x[4]*s[i].x[4] + s[i].x[5]*s[i].x[5]);
 	}
+	free(rij);
 	}
 	Ek *= 0.5;
 	RS0 /= N_node;
-//	*rs0_out = RS0/N_node;
 
-/*
-	for (i=0;i<N_node;++i){
-		for (j=i+1;j<N_node;++j){
-			r2 = (s[i].x[0] - s[j].x[0])*(s[i].x[0] - s[j].x[0]) +\
-				 (s[i].x[1] - s[j].x[1])*(s[i].x[1] - s[j].x[1]) +\
-				 (s[i].x[2] - s[j].x[2])*(s[i].x[2] - s[j].x[2]);
-			Ep -= s[i].m*s[j].m / sqrt(r2);
+#else
+
+	rij = (double*) malloc (N_node*sizeof(double));
+	for (i=0;i<N_node;++i) {
+		rij[i] = DBL_MAX;
+		for (j=0;j<N_node;++j) {
+			if (i != j) {
+				r2 = (s[i].x[0] - s[j].x[0])*(s[i].x[0] - s[j].x[0]) +
+					 (s[i].x[1] - s[j].x[1])*(s[i].x[1] - s[j].x[1]) +
+					 (s[i].x[2] - s[j].x[2])*(s[i].x[2] - s[j].x[2]);
+				rij[j] = r2;
+			}
+			if (j>i) Ep -= s[i].m*s[j].m / sqrt(r2);
 		}
-//		v2 = s[i].vx*s[i].vx + s[i].vy*s[i].vy + s[i].vz*s[i].vz;
-		Ek += s[i].m * ( s[i].vx*s[i].vx + s[i].vy*s[i].vy + s[i].vz*s[i].vz );
+		RS0 += sqrt( quick_select(rij,NNBMAX/5,N_node) );
+		Ek  += s[i].m * (s[i].x[3]*s[i].x[3] + s[i].x[4]*s[i].x[4] + s[i].x[5]*s[i].x[5]);
 	}
+	free(rij);
+
 	Ek *= 0.5;
-*/
+	RS0 /= N_node;
+
+#endif
 
 	rscale = Ep/Ep_nbody;
 	if (Ek == 0) {
@@ -104,7 +112,7 @@ double nbody_scale(int N_node, double q, struct star *s, int *nnbmax_out, double
 
 	*rs0_out = RS0*rscale;
 	fprintf(stderr,"NNBMAX=%d, RS0=%lf\n",NNBMAX,*rs0_out);
-	for (i=0;i<N_node;++i){
+	for (i=0;i<N_node;++i) {
 		s[i].x[0] *= rscale;
 		s[i].x[1] *= rscale;
 		s[i].x[2] *= rscale;

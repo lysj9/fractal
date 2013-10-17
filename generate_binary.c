@@ -159,6 +159,7 @@ void generate_binaries(struct star *star_x, int N_star, int nbin, double ml, dou
 		star_x[2*i+1].x[3] =  m1/m_cm * v_orbit[0];
 		star_x[2*i+1].x[4] =  m1/m_cm * v_orbit[1];
 		star_x[2*i+1].x[5] =  m1/m_cm * v_orbit[2];
+
 		star_x[2*i  ].x[0] = -m2/m_cm * r_orbit[0];
 		star_x[2*i  ].x[1] = -m2/m_cm * r_orbit[1];
 		star_x[2*i  ].x[2] = -m2/m_cm * r_orbit[2];
@@ -167,18 +168,19 @@ void generate_binaries(struct star *star_x, int N_star, int nbin, double ml, dou
 		star_x[2*i  ].x[5] = -m2/m_cm * v_orbit[2];
 
 //		// position & velocity in cluster frame
-//		star_x[2*i+1].x  += m1/m_cm * r_orbit[0];
-//		star_x[2*i+1].y  += m1/m_cm * r_orbit[1];
-//		star_x[2*i+1].z  += m1/m_cm * r_orbit[2];
-//		star_x[2*i+1].vx += m1/m_cm * v_orbit[0];
-//		star_x[2*i+1].vy += m1/m_cm * v_orbit[1];
-//		star_x[2*i+1].vz += m1/m_cm * v_orbit[2];
-//		star_x[2*i  ].x  -= m2/m_cm * r_orbit[0];
-//		star_x[2*i  ].y  -= m2/m_cm * r_orbit[1];
-//		star_x[2*i  ].z  -= m2/m_cm * r_orbit[2];
-//		star_x[2*i  ].vx -= m2/m_cm * v_orbit[0];
-//		star_x[2*i  ].vy -= m2/m_cm * v_orbit[1];
-//		star_x[2*i  ].vz -= m2/m_cm * v_orbit[2];
+//		star_x[2*i+1].x[0] += m1/m_cm * r_orbit[0];
+//		star_x[2*i+1].y[1] += m1/m_cm * r_orbit[1];
+//		star_x[2*i+1].z[2] += m1/m_cm * r_orbit[2];
+//		star_x[2*i+1].v[3] += m1/m_cm * v_orbit[0];
+//		star_x[2*i+1].v[4] += m1/m_cm * v_orbit[1];
+//		star_x[2*i+1].v[5] += m1/m_cm * v_orbit[2];
+
+//		star_x[2*i  ].x[0] -= m2/m_cm * r_orbit[0];
+//		star_x[2*i  ].y[1] -= m2/m_cm * r_orbit[1];
+//		star_x[2*i  ].z[2] -= m2/m_cm * r_orbit[2];
+//		star_x[2*i  ].v[3] -= m2/m_cm * v_orbit[0];
+//		star_x[2*i  ].v[4] -= m2/m_cm * v_orbit[1];
+//		star_x[2*i  ].v[5] -= m2/m_cm * v_orbit[2];
 
 		// update centre-mass for binaries
 		star_x[N_star+i].m = m_cm;

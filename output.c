@@ -3,7 +3,7 @@
 #include <math.h>
 
 //void output_nbody6(char *outname, int N_star, int nbin, double *r2_sort, int seed, double r_virial, double m_mean, double mlow, double mhigh, double q, int *nnbmax_out, double *rs0_out)
-void output_nbody6(char *outname, int N_star, int nbin, double *r2_sort, int seed, double r_virial, double m_mean, double mlow, double mhigh, double q, int NNBMAX, double RS0)
+void output_nbody6(char *outname, int N_star, int nbin, int seed, double r_virial, double m_mean, double mlow, double mhigh, double q, int NNBMAX, double RS0)
 {
 	FILE *FP;
 	if (NULL == (FP=fopen(outname,"w"))){
