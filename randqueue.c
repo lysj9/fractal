@@ -7,7 +7,9 @@
 
 #include "randomz.h"
 
-void randqueue2(int n, int *idx, int randnum, int *randidx, struct vector_s *star, double eps)
+#define SQ(x) ((x) * (x))
+
+void randqueue2(int n, int *idx, int randnum, int *randidx, struct star *star_x, double eps)
 {
 	int i=0,j=0,k=0;
 	int itemp=0;
@@ -36,9 +38,9 @@ void randqueue2(int n, int *idx, int randnum, int *randidx, struct vector_s *sta
 		omp_stop = (omp_get_thread_num()+1)*j/omp_get_num_threads();
 
 		while (omp_start < omp_stop && accept) {
-			sep2 = (star[randidx[omp_start]].x - star[randi].x) * (star[randidx[omp_start]].x - star[randi].x) +
-				(star[randidx[omp_start]].y - star[randi].y) * (star[randidx[omp_start]].y - star[randi].y) +
-				(star[randidx[omp_start]].z - star[randi].z) * (star[randidx[omp_start]].z - star[randi].z);
+			sep2 = SQ(star_x[randidx[omp_start]].x[0] - star_x[randi].x[0]) +
+				   SQ(star_x[randidx[omp_start]].x[1] - star_x[randi].x[1]) +
+				   SQ(star_x[randidx[omp_start]].x[2] - star_x[randi].x[2]);
 			if (sep2<eps2) {
 #pragma omp critical
 				accept=0;
@@ -48,9 +50,9 @@ void randqueue2(int n, int *idx, int randnum, int *randidx, struct vector_s *sta
 	}
 #else
 		for (k=0;k<j;++k) {
-			sep2 = (star[randidx[k]].x - star[randi].x) * (star[randidx[k]].x - star[randi].x) +
-				(star[randidx[k]].y - star[randi].y) * (star[randidx[k]].y - star[randi].y) +
-				(star[randidx[k]].z - star[randi].z) * (star[randidx[k]].z - star[randi].z);
+			sep2 = SQ(star_x[randidx[k]].x[0] - star_x[randi].x[0]) +
+				   SQ(star_x[randidx[k]].x[1] - star_x[randi].x[1]) +
+				   SQ(star_x[randidx[k]].x[2] - star_x[randi].x[2]);
 			if (sep2<eps2) {
 				accept=0;
 				break;

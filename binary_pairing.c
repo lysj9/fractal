@@ -18,7 +18,7 @@ double hq(double q0, double q1)
 }
 
 static
-void RP(struct vector_s *x, int n, int *nbin, double ml, double mh)
+void RP(struct star *x, int n, int *nbin, double ml, double mh)
 {
 	int i,j;
 	int nb,ns;
@@ -29,7 +29,7 @@ void RP(struct vector_s *x, int n, int *nbin, double ml, double mh)
 	generate_mass(nb,ml,mh,m2);
 	for (i=0;i<nb;++i) {
 		j  = (ns - i)*randomz();
-		SWAP(x[2*i],x[j],struct vector_s);
+		SWAP(x[2*i],x[j],struct star);
 		x[ns+i] = x[2*i+1];
 		x[2*i+1].m = m2[i];
 	}
@@ -37,7 +37,7 @@ void RP(struct vector_s *x, int n, int *nbin, double ml, double mh)
 }
 
 static
-void PCRP(struct vector_s *x, int n, int *nbin, double ml)
+void PCRP(struct star *x, int n, int *nbin, double ml)
 {
 	int i,j;
 	int nb,ns;
@@ -48,14 +48,14 @@ void PCRP(struct vector_s *x, int n, int *nbin, double ml)
 		j  = (ns - i)*randomz();
 		m1 = x[j].m;
 		m2 = kroupa_IMF(ml,m1);
-		SWAP(x[2*i],x[j],struct vector_s);
+		SWAP(x[2*i],x[j],struct star);
 		x[ns+i] = x[2*i+1];
 		x[2*i+1].m = m2;
 	}
 }
 
 static
-void PCP_I(struct vector_s *x, int n, int *nbin)
+void PCP_I(struct star *x, int n, int *nbin)
 {
 	int i,j;
 	int nb,ns;
@@ -68,14 +68,14 @@ void PCP_I(struct vector_s *x, int n, int *nbin)
 		m1 = x[j].m;
 		q  = randomz();
 		m2 = m1*q;
-		SWAP(x[2*i],x[j],struct vector_s);
+		SWAP(x[2*i],x[j],struct star);
 		x[ns+i] = x[2*i+1];
 		x[2*i+1].m = m2;
 	}
 }
 
 static
-void PCP_II(struct vector_s *x, int n, int *nbin, double ml)
+void PCP_II(struct star *x, int n, int *nbin, double ml)
 {
 	int i,j;
 	int nb,ns;
@@ -92,7 +92,7 @@ void PCP_II(struct vector_s *x, int n, int *nbin, double ml)
 			nb--;
 			continue;
 		}
-		SWAP(x[2*i],x[j],struct vector_s);
+		SWAP(x[2*i],x[j],struct star);
 		x[ns+i] = x[2*i+1];
 		x[2*i+1].m = m2;
 	}
@@ -100,7 +100,7 @@ void PCP_II(struct vector_s *x, int n, int *nbin, double ml)
 }
 
 static
-void PCP_III(struct vector_s *x, int n, int *nbin, double ml)
+void PCP_III(struct star *x, int n, int *nbin, double ml)
 {
 	int i,j;
 	int nb,ns;
@@ -114,14 +114,14 @@ void PCP_III(struct vector_s *x, int n, int *nbin, double ml)
 		q0 = ml/m1;
 		q  = hq(q0,1);
 		m2 = m1*q;
-		SWAP(x[2*i],x[j],struct vector_s);
+		SWAP(x[2*i],x[j],struct star);
 		x[ns+i] = x[2*i+1];
 		x[2*i+1].m = m2;
 	}
 }
 
 static
-void SCP_I(struct vector_s *x, int n, int *nbin, double ml, double mh)
+void SCP_I(struct star *x, int n, int *nbin, double ml, double mh)
 {
 	int i,j;
 	int nb,ns;
@@ -133,7 +133,7 @@ void SCP_I(struct vector_s *x, int n, int *nbin, double ml, double mh)
 		Mc = kroupa_IMF(2*ml,mh);
 		q  = randomz();
 		j  = (ns - i)*randomz();
-		SWAP(x[2*i],x[j],struct vector_s);
+		SWAP(x[2*i],x[j],struct star);
 		x[ns+i] = x[2*i+1];
 		m1 = Mc/(1+q);
 		m2 = Mc/(1+1./q);
@@ -143,7 +143,7 @@ void SCP_I(struct vector_s *x, int n, int *nbin, double ml, double mh)
 }
 
 static
-void SCP_II(struct vector_s *x, int n, int *nbin, double ml, double mh)
+void SCP_II(struct star *x, int n, int *nbin, double ml, double mh)
 {
 	int i,j;
 	int nb,ns;
@@ -160,7 +160,7 @@ void SCP_II(struct vector_s *x, int n, int *nbin, double ml, double mh)
 			continue;
 		}
 		j  = (ns - i)*randomz();
-		SWAP(x[2*i],x[j],struct vector_s);
+		SWAP(x[2*i],x[j],struct star);
 		x[ns+i] = x[2*i+1];
 		m1 = Mc/(1+q);
 		m2 = Mc/(1+1./q);
@@ -171,7 +171,7 @@ void SCP_II(struct vector_s *x, int n, int *nbin, double ml, double mh)
 }
 
 static
-void SCP_III(struct vector_s *x, int n, int *nbin, double ml, double mh)
+void SCP_III(struct star *x, int n, int *nbin, double ml, double mh)
 {
 	int i,j;
 	int nb,ns;
@@ -184,7 +184,7 @@ void SCP_III(struct vector_s *x, int n, int *nbin, double ml, double mh)
 		q0 = ml/(Mc-ml);
 		q  = hq(q0,1);
 		j  = (ns - i)*randomz();
-		SWAP(x[2*i],x[j],struct vector_s);
+		SWAP(x[2*i],x[j],struct star);
 		x[ns+i] = x[2*i+1];
 		m1 = Mc/(1+q);
 		m2 = Mc/(1+1./q);
@@ -193,7 +193,7 @@ void SCP_III(struct vector_s *x, int n, int *nbin, double ml, double mh)
 	}
 }
 
-void binary_pairing(struct vector_s *x, int n, int *nbin, double ml, double mh, int pairing_type)
+void binary_pairing(struct star *x, int n, int *nbin, double ml, double mh, int pairing_type)
 {
 	if (pairing_type==1) {
 		/* PCRP */

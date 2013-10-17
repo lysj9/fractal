@@ -8,7 +8,7 @@
 #include "quick_select.h"
 #include "quick_sort.h"
 
-double nbody_scale(int N_node, double q, struct vector_s *star, int *nnbmax_out, double *rs0_out)
+double nbody_scale(int N_node, double q, struct star *s, int *nnbmax_out, double *rs0_out)
 {
 	int NNBMAX;
 	NNBMAX = 1.25*sqrt(N_node);
@@ -24,33 +24,28 @@ double nbody_scale(int N_node, double q, struct vector_s *star, int *nnbmax_out,
 	double r2,rscale,vscale;
 	double *rij;
 
-	struct vector_s centre={0,0,0,0,0,0,0};
+	struct star centre={0,{0,0,0,0,0,0}};
 	// centre of mass correction
 	for (i=0;i<N_node;++i){
-		centre.m  += star[i].m;
-		centre.x  += star[i].m * star[i].x;
-		centre.y  += star[i].m * star[i].y;
-		centre.z  += star[i].m * star[i].z;
-		centre.vx += star[i].m * star[i].vx;
-		centre.vy += star[i].m * star[i].vy;
-		centre.vz += star[i].m * star[i].vz;
+		centre.m += s[i].m;
+		centre.x[0] += s[i].m * s[i].x[0];
+		centre.x[1] += s[i].m * s[i].x[1];
+		centre.x[2] += s[i].m * s[i].x[2];
+		centre.x[3] += s[i].m * s[i].x[3];
+		centre.x[4] += s[i].m * s[i].x[4];
+		centre.x[5] += s[i].m * s[i].x[5];
 	}
-	centre.x  /= centre.m;
-	centre.y  /= centre.m;
-	centre.z  /= centre.m;
-	centre.vx /= centre.m;
-	centre.vy /= centre.m;
-	centre.vz /= centre.m;
+	for (i=0;i<6;++i) centre.x[i] /= centre.m;
 
 	// all stars including binaries and com-binaries
 	for (i=0;i<N_node;++i){
-		star[i].m  /= centre.m;
-		star[i].x  -= centre.x;
-		star[i].y  -= centre.y;
-		star[i].z  -= centre.z;
-		star[i].vx -= centre.vx;
-		star[i].vy -= centre.vy;
-		star[i].vz -= centre.vz;
+		s[i].m /= centre.m;
+		s[i].x[0] -= centre.x[0];
+		s[i].x[1] -= centre.x[1];
+		s[i].x[2] -= centre.x[2];
+		s[i].x[3] -= centre.x[3];
+		s[i].x[4] -= centre.x[4];
+		s[i].x[5] -= centre.x[5];
 	}
 
 	RS0=0;
@@ -64,19 +59,19 @@ double nbody_scale(int N_node, double q, struct vector_s *star, int *nnbmax_out,
 //		rij[i] = DBL_MAX;
 		for (j=0;j<N_node;++j){
 			if (i!=j) {
-				r2 = ( star[i].x - star[j].x )*( star[i].x - star[j].x ) +\
-					 ( star[i].y - star[j].y )*( star[i].y - star[j].y ) +\
-					 ( star[i].z - star[j].z )*( star[i].z - star[j].z );
+				r2 = (s[i].x[0] - s[j].x[0])*(s[i].x[0] - s[j].x[0]) +\
+					 (s[i].x[1] - s[j].x[1])*(s[i].x[1] - s[j].x[1]) +\
+					 (s[i].x[2] - s[j].x[2])*(s[i].x[2] - s[j].x[2]);
 				rij[j] = r2;
 			}
-			if (j>i) Ep -= star[i].m*star[j].m / sqrt(r2);
+			if (j>i) Ep -= s[i].m*s[j].m / sqrt(r2);
 		}
 		RS0 += sqrt( quick_select(rij,NNBMAX/5,N_node) );
 //		quick_sort1(rij,N_node);
 //		RS0 += sqrt( rij[NNBMAX/5] );
 
-//		v2 = star[i].vx*star[i].vx + star[i].vy*star[i].vy + star[i].vz*star[i].vz;
-		Ek += star[i].m * ( star[i].vx*star[i].vx + star[i].vy*star[i].vy + star[i].vz*star[i].vz );
+//		v2 = s[i].vx*s[i].vx + s[i].vy*s[i].vy + s[i].vz*s[i].vz;
+		Ek += s[i].m * (s[i].x[3]*s[i].x[3] + s[i].x[4]*s[i].x[4] + s[i].x[5]*s[i].x[5]);
 	}
 	}
 	Ek *= 0.5;
@@ -86,13 +81,13 @@ double nbody_scale(int N_node, double q, struct vector_s *star, int *nnbmax_out,
 /*
 	for (i=0;i<N_node;++i){
 		for (j=i+1;j<N_node;++j){
-			r2 = ( star[i].x - star[j].x )*( star[i].x - star[j].x ) +\
-				 ( star[i].y - star[j].y )*( star[i].y - star[j].y ) +\
-				 ( star[i].z - star[j].z )*( star[i].z - star[j].z );
-			Ep -= star[i].m*star[j].m / sqrt(r2);
+			r2 = (s[i].x[0] - s[j].x[0])*(s[i].x[0] - s[j].x[0]) +\
+				 (s[i].x[1] - s[j].x[1])*(s[i].x[1] - s[j].x[1]) +\
+				 (s[i].x[2] - s[j].x[2])*(s[i].x[2] - s[j].x[2]);
+			Ep -= s[i].m*s[j].m / sqrt(r2);
 		}
-//		v2 = star[i].vx*star[i].vx + star[i].vy*star[i].vy + star[i].vz*star[i].vz;
-		Ek += star[i].m * ( star[i].vx*star[i].vx + star[i].vy*star[i].vy + star[i].vz*star[i].vz );
+//		v2 = s[i].vx*s[i].vx + s[i].vy*s[i].vy + s[i].vz*s[i].vz;
+		Ek += s[i].m * ( s[i].vx*s[i].vx + s[i].vy*s[i].vy + s[i].vz*s[i].vz );
 	}
 	Ek *= 0.5;
 */
@@ -110,43 +105,31 @@ double nbody_scale(int N_node, double q, struct vector_s *star, int *nnbmax_out,
 	*rs0_out = RS0*rscale;
 	fprintf(stderr,"NNBMAX=%d, RS0=%lf\n",NNBMAX,*rs0_out);
 	for (i=0;i<N_node;++i){
-		star[i].x  *= rscale;
-		star[i].y  *= rscale;
-		star[i].z  *= rscale;
-		star[i].vx *= vscale;
-		star[i].vy *= vscale;
-		star[i].vz *= vscale;
+		s[i].x[0] *= rscale;
+		s[i].x[1] *= rscale;
+		s[i].x[2] *= rscale;
+		s[i].x[3] *= vscale;
+		s[i].x[4] *= vscale;
+		s[i].x[5] *= vscale;
 	}
 
 	return centre.m;
 }
 
-/*
-void binary_scale()
-{
-}
-
-void binary_energy(int nbin, struct vector_s *star)
-{
-	int i,j;
-	double Ek,Ep;
-}
-*/
-
-void sort_radius(int N_cm, struct vector_s *star, double *r2_sort, int *idx)
+void sort_radius(int N_cm, struct star *s, double *r2_sort, int *idx)
 {
 	int i;
 	for (i=0;i<N_cm;++i) {
-		r2_sort[i] = (star[i].x*star[i].x) + 
-					 (star[i].y*star[i].y) + 
-					 (star[i].z*star[i].z);
+		r2_sort[i] = (s[i].x[0]*s[i].x[0]) + 
+					 (s[i].x[1]*s[i].x[1]) + 
+					 (s[i].x[2]*s[i].x[2]);
 		idx[i] = i;
 	}
 	quick_sort2(r2_sort,idx,N_cm);
 	return;
 }
 
-double get_radius(int N_cm, struct vector_s *star, double truncate, double *r2_sort, int *idx)
+double get_radius(int N_cm, struct star *s, double truncate, double *r2_sort, int *idx)
 {
 	int i;
 	double r_tr;
@@ -158,7 +141,7 @@ double get_radius(int N_cm, struct vector_s *star, double truncate, double *r2_s
 		exit(0);
 	}
 	for (i=0;i<N_cm;++i) {
-		m[i] = star[i].m;
+		m[i] = s[i].m;
 	}
 	m_tr = m[idx[0]];
 	if (m_tr>truncate) {

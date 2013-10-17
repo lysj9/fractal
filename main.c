@@ -58,8 +58,9 @@ int main(int argc, char *argv[])
 	double m_mean;
 //	double dtadj=1.0;
 //	double deltat=1.0;
+	int pairing_type=4; // binary pairing type, PCP-III by default
 	
-	char dic_str[]="s1:n1:r1:R1:t2:f1:l1:u1:D1:b1:B1:q1";
+	char dic_str[]="s1:n1:r1:R1:t2:f1:l1:u1:D1:b1:B1:q1:p1";
 	char arg_name[8];
 	char *arg_str[16];
 //	char param_str[]="s1n1r1R1t2f1u1l1D1b1B1q1A1O1";
@@ -103,6 +104,8 @@ int main(int argc, char *argv[])
 				fbin = atof(arg_str[0]);
 			} else if (strcmp(arg_name,"q") == 0) {
 				q = atof(arg_str[0]);
+			} else if (strcmp(arg_name,"p") == 0) {
+				pairing_type = atoi(arg_str[0]);
 			} else {
 				//printf("%d %s\n",c,arg_name);
 				printf("show help:\n");
@@ -150,9 +153,9 @@ int main(int argc, char *argv[])
 		rs_estimated=r_virial/rvir_nbody;
 	}
 	// individual binaries + single stars + c.m. binaries
-	struct vector_s *star = (struct vector_s*) malloc ( (N_star+nbin)*sizeof(struct vector_s) );
-	if (NULL==star) {
-		fprintf(stderr,"malloc *star error\n");
+	struct star *star_x = (struct star*) malloc ( (N_star+nbin)*sizeof(struct star) );
+	if (NULL==star_x) {
+		fprintf(stderr,"malloc *star_x error\n");
 		exit(-1);
 	}
 
@@ -164,7 +167,7 @@ int main(int argc, char *argv[])
 /*	******** ******** ******** ******** ******** ******** ********	*/
 	t0 = get_wtime();
 	N_node = N_star - nbin;
-	fractal(N_node,D,mlow,mhigh,star,rs_estimated);
+	fractal(N_node,D,mlow,mhigh,star_x,rs_estimated);
 
 	t1 = get_wtime();
 	tc = t1 - t0;
@@ -179,7 +182,7 @@ int main(int argc, char *argv[])
 	if (nbin > 0) {
 		// position in [pc], velocity in [m/s/VSC]
 		// position and velocity are in binary frame
-		generate_binaries(star,N_star,nbin,mlow,mhigh,0);
+		generate_binaries(star_x,N_star,nbin,mlow,mhigh,pairing_type);
 	}
 
 	t1 = get_wtime();
@@ -195,7 +198,7 @@ int main(int argc, char *argv[])
 	// i.e. total energy = -0.25, virial ratio = q
 	int NNBMAX;
 	double RS0;
-	Mtot = nbody_scale(N_node,q,star+2*nbin,&NNBMAX,&RS0);
+	Mtot = nbody_scale(N_node,q,star_x+2*nbin,&NNBMAX,&RS0);
 	m_mean = Mtot/N_star;
 
 	// get the scale informations (rscale, vscale & tscale)
@@ -211,10 +214,10 @@ int main(int argc, char *argv[])
 		fprintf(stderr,"malloc *idx error\n");
 		exit(-1);
 	}
-	sort_radius(N_node,star+2*nbin,r2_sort,idx);
-	r_tr_nbody = get_radius(N_node,star+2*nbin,truncate,r2_sort,idx);
+	sort_radius(N_node,star_x+2*nbin,r2_sort,idx);
+	r_tr_nbody = get_radius(N_node,star_x+2*nbin,truncate,r2_sort,idx);
 	if (0.5!=truncate) {
-		r_hm_nbody = get_radius(N_node,star+2*nbin,0.5,r2_sort,idx);
+		r_hm_nbody = get_radius(N_node,star_x+2*nbin,0.5,r2_sort,idx);
 	} else {
 		r_hm_nbody = r_tr_nbody;
 	}
@@ -242,15 +245,15 @@ int main(int argc, char *argv[])
 	// scale binaries to cluster frame, in NBODY-UNIT
 	for (i=0;i<2*nbin;++i) {
 		// mass in [MSUN]
-		star[i].m /= Mtot;
+		star_x[i].m /= Mtot;
 		// position in [pc]
-		star[i].x  = star[N_star+i/2].x + star[i].x/rscale;
-		star[i].y  = star[N_star+i/2].y + star[i].y/rscale;
-		star[i].z  = star[N_star+i/2].z + star[i].z/rscale;
+		star_x[i].x[0] = star_x[N_star+i/2].x[0] + star_x[i].x[0] / rscale;
+		star_x[i].x[1] = star_x[N_star+i/2].x[1] + star_x[i].x[1] / rscale;
+		star_x[i].x[2] = star_x[N_star+i/2].x[2] + star_x[i].x[2] / rscale;
 		// generate_binaries returns velocity in [m/s/VSC]
-		star[i].vx = star[N_star+i/2].vx + star[i].vx/v_virial;
-		star[i].vy = star[N_star+i/2].vy + star[i].vy/v_virial;
-		star[i].vz = star[N_star+i/2].vz + star[i].vz/v_virial;
+		star_x[i].x[3] = star_x[N_star+i/2].x[3] + star_x[i].x[3] / v_virial;
+		star_x[i].x[4] = star_x[N_star+i/2].x[4] + star_x[i].x[4] / v_virial;
+		star_x[i].x[5] = star_x[N_star+i/2].x[5] + star_x[i].x[5] / v_virial;
 	}
 
 	t1 = get_wtime();
@@ -264,9 +267,9 @@ int main(int argc, char *argv[])
 	// output stars
 	for (i=0;i<N_star+nbin;++i){
 		fprintf(FP,"%24.16e %24.16e %24.16e %24.16e %24.16e %24.16e %24.16e\n",
-				star[i].m,
-				star[i].x,star[i].y,star[i].z,
-				star[i].vx,star[i].vy,star[i].vz);
+				star_x[i].m,
+				star_x[i].x[0],star_x[i].x[1],star_x[i].x[2],
+				star_x[i].x[3],star_x[i].x[4],star_x[i].x[5]);
 	}
 	fclose(FP);
 
@@ -341,7 +344,7 @@ int main(int argc, char *argv[])
 /*	******** ******** ******** ******** ******** ******** ********	*/
 	free(r2_sort);
 	free(idx);
-	free(star);
+	free(star_x);
 
 	t_end = get_wtime();
 	t_cost = t_end - t_start;

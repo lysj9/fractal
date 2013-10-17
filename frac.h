@@ -3,6 +3,6 @@
 
 #include "type.h"
 
-void fractal(int StarNum, double D, double mlow, double mhigh, struct vector_s *star, double rs_estimated);
+void fractal(int StarNum, double D, double mlow, double mhigh, struct star *star_x, double rs_estimated);
 
 #endif

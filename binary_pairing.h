@@ -3,6 +3,6 @@
 
 #include "type.h"
 
-void binary_pairing(struct vector_s *x, int n, int *nbin, double ml, double mh, int pairing_type);
+void binary_pairing(struct star *x, int n, int *nbin, double ml, double mh, int pairing_type);
 
 #endif

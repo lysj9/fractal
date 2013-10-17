@@ -72,7 +72,7 @@ static double orbital_kepler(double M_orbit, double e)
 	return E_orbit;
 }
 
-void generate_binaries(struct vector_s *star, int N_star, int nbin, double ml, double mh, int pairing_type)
+void generate_binaries(struct star *star_x, int N_star, int nbin, double ml, double mh, int pairing_type)
 {
 	int i,j;
 	double a,P,e;
@@ -91,12 +91,12 @@ void generate_binaries(struct vector_s *star, int N_star, int nbin, double ml, d
 	double m1,m2,m_cm;
 //	double rvir;
 
-	binary_pairing(star,N_star,&nbin,ml,mh,pairing_type);
+	binary_pairing(star_x,N_star,&nbin,ml,mh,pairing_type);
 
 	for (i=0;i<nbin;++i) {
 
-		m1 = star[2*i  ].m;
-		m2 = star[2*i+1].m;
+		m1 = star_x[2*i  ].m;
+		m2 = star_x[2*i+1].m;
 		do {
 			x = randomz();
 			log_P = logPmin + sqrt( delta * ( exp(2.0*x/eta) -1.0 ) );
@@ -114,8 +114,8 @@ void generate_binaries(struct vector_s *star, int N_star, int nbin, double ml, d
 		// Apply Kroupa (1995) eigenevolution
 		m_cm = eigenevolution(&m1,&m2,&P,&e);
 		// m_cm = m1+m2;
-		star[2*i  ].m = m1;
-		star[2*i+1].m = m2;
+		star_x[2*i  ].m = m1;
+		star_x[2*i+1].m = m2;
 
 		// position & velocity in binary frame
 		M_orbit = TWO_PI*randomz();
@@ -153,35 +153,35 @@ void generate_binaries(struct vector_s *star, int N_star, int nbin, double ml, d
 			v_orbit[j] = v_P*P_matrix[j] + v_Q*Q_matrix[j];
 		}
 
-		star[2*i+1].x  =  m1/m_cm * r_orbit[0];
-		star[2*i+1].y  =  m1/m_cm * r_orbit[1];
-		star[2*i+1].z  =  m1/m_cm * r_orbit[2];
-		star[2*i+1].vx =  m1/m_cm * v_orbit[0];
-		star[2*i+1].vy =  m1/m_cm * v_orbit[1];
-		star[2*i+1].vz =  m1/m_cm * v_orbit[2];
-		star[2*i  ].x  = -m2/m_cm * r_orbit[0];
-		star[2*i  ].y  = -m2/m_cm * r_orbit[1];
-		star[2*i  ].z  = -m2/m_cm * r_orbit[2];
-		star[2*i  ].vx = -m2/m_cm * v_orbit[0];
-		star[2*i  ].vy = -m2/m_cm * v_orbit[1];
-		star[2*i  ].vz = -m2/m_cm * v_orbit[2];
+		star_x[2*i+1].x[0] =  m1/m_cm * r_orbit[0];
+		star_x[2*i+1].x[1] =  m1/m_cm * r_orbit[1];
+		star_x[2*i+1].x[2] =  m1/m_cm * r_orbit[2];
+		star_x[2*i+1].x[3] =  m1/m_cm * v_orbit[0];
+		star_x[2*i+1].x[4] =  m1/m_cm * v_orbit[1];
+		star_x[2*i+1].x[5] =  m1/m_cm * v_orbit[2];
+		star_x[2*i  ].x[0] = -m2/m_cm * r_orbit[0];
+		star_x[2*i  ].x[1] = -m2/m_cm * r_orbit[1];
+		star_x[2*i  ].x[2] = -m2/m_cm * r_orbit[2];
+		star_x[2*i  ].x[3] = -m2/m_cm * v_orbit[0];
+		star_x[2*i  ].x[4] = -m2/m_cm * v_orbit[1];
+		star_x[2*i  ].x[5] = -m2/m_cm * v_orbit[2];
 
 //		// position & velocity in cluster frame
-//		star[2*i+1].x  += m1/m_cm * r_orbit[0];
-//		star[2*i+1].y  += m1/m_cm * r_orbit[1];
-//		star[2*i+1].z  += m1/m_cm * r_orbit[2];
-//		star[2*i+1].vx += m1/m_cm * v_orbit[0];
-//		star[2*i+1].vy += m1/m_cm * v_orbit[1];
-//		star[2*i+1].vz += m1/m_cm * v_orbit[2];
-//		star[2*i  ].x  -= m2/m_cm * r_orbit[0];
-//		star[2*i  ].y  -= m2/m_cm * r_orbit[1];
-//		star[2*i  ].z  -= m2/m_cm * r_orbit[2];
-//		star[2*i  ].vx -= m2/m_cm * v_orbit[0];
-//		star[2*i  ].vy -= m2/m_cm * v_orbit[1];
-//		star[2*i  ].vz -= m2/m_cm * v_orbit[2];
+//		star_x[2*i+1].x  += m1/m_cm * r_orbit[0];
+//		star_x[2*i+1].y  += m1/m_cm * r_orbit[1];
+//		star_x[2*i+1].z  += m1/m_cm * r_orbit[2];
+//		star_x[2*i+1].vx += m1/m_cm * v_orbit[0];
+//		star_x[2*i+1].vy += m1/m_cm * v_orbit[1];
+//		star_x[2*i+1].vz += m1/m_cm * v_orbit[2];
+//		star_x[2*i  ].x  -= m2/m_cm * r_orbit[0];
+//		star_x[2*i  ].y  -= m2/m_cm * r_orbit[1];
+//		star_x[2*i  ].z  -= m2/m_cm * r_orbit[2];
+//		star_x[2*i  ].vx -= m2/m_cm * v_orbit[0];
+//		star_x[2*i  ].vy -= m2/m_cm * v_orbit[1];
+//		star_x[2*i  ].vz -= m2/m_cm * v_orbit[2];
 
 		// update centre-mass for binaries
-		star[N_star+i].m = m_cm;
+		star_x[N_star+i].m = m_cm;
 	}
 
 	return;

@@ -1,14 +1,15 @@
 #ifndef _TYPE_H_
 #define _TYPE_H_
 
-struct node{
+struct node {
 	double m;
-	double x,y,z,vx,vy,vz;
+	double x[6];
 	struct node *next;
 };
 
-struct vector_s{
-	double m,x,y,z,vx,vy,vz;
+struct star {
+	double m;
+	double x[6];
 };
 
 #endif
