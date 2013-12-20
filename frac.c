@@ -158,11 +158,14 @@ void fractal(int StarNum, double D, double mlow, double mhigh, struct star *star
 				if (randomz() < mp){
 
 					// generate the mass of sub-nodes:
+					m = p_IMF(s,ml,mh);
+					/*
 					if (randomz() < xb) {
 						m = mb[0] * pow(pow_norm1*randomz()+1, 1/a1[0]);
 					} else {
 						m = mb[1] * pow(pow_norm2*randomz()+1, 1/a1[1]);
 					}
+					*/
 					// m = makemass(mlow,mhigh);
 						//	may be used some day...
 
