@@ -8,7 +8,6 @@
 
 #include "frac.h"
 #include "generate_binary.h"
-#include "generate_mass.h"
 #include "getopt.h"
 #include "make_mass.h"
 #include "output.h"
