@@ -18,6 +18,17 @@ double general_power_law(double ml, double mh, double alpha)
 	return m;
 }
 
+double general_power_law2(double ml, double mh, double alpha, double norm)
+{
+	double m;
+	if (alpha == 1) {
+		m = ml * exp(norm*randomz());
+	} else {
+		m = ml * pow(norm*randomz() + 1, 1/(1 - alpha));
+	}
+	return m;
+}
+
 /* Kroupa IMF */
 double kroupa_IMF(double ml, double mh)
 {
@@ -135,6 +146,49 @@ double IMF(int s, double *a, double *m0)
 	for (i=0;i<s;++i) norm += norm0[i];
 	x0[i] = norm0[0]/norm;
 	for (i=1;i<s;++i) x0[i] = x0[i-1] + norm0[i]/norm;
+
+	x = randomz();
+	for (i=0;i<s;++i) {
+		if (x < x0[i]) {
+			m = general_power_law(m0[i],m0[i+1],a[i]);
+			break;
+		}
+	}
+	return m;
+}
+
+double IMF2(int s, double *a, double *m0)
+{
+	/* s sections, ml = m0[0], mh = m0[s], m0[i] < m0[i+1] */
+	/* f(m)dm = ki * m^(-ai) , m0[i] < m < m0[i+1], i=0,1,...,s-1 */
+	double m=0;
+	double norm;
+	double norm0[s];
+	double a1;
+	double x0[s];
+	double x;
+	double ki;
+	int i;
+	static int first=1;
+
+	if (first) {
+		a1 = 1 - a[0];
+		ki = 1;
+		norm0[0] = (pow(m0[1],a1) - pow(m0[0],a1)) / a1; /* norm0[0] *= ki */
+		for (i=0;i<s;++i) {
+			a1 = 1 - a[i];
+			ki *= pow(m0[i],a[i]-a[i-1]);
+			norm0[i] = ki * (pow(m0[i+1],a1) - pow(m0[i],a1)) / a1;
+		}
+		
+		norm = 0;
+		for (i=0;i<s;++i) norm += norm0[i];
+		x0[i] = norm0[0]/norm;
+		for (i=1;i<s;++i) x0[i] = x0[i-1] + norm0[i]/norm;
+
+		first = 0;
+	}
+
 	x = randomz();
 	for (i=0;i<s;++i) {
 		if (x < x0[i]) {
@@ -146,7 +200,7 @@ double IMF(int s, double *a, double *m0)
 }
 
 /* rejection sampling or acceptance-rejection method, inefficient way */
-double make_mass(double mlow, double mhigh)
+double make_kroupa_IMF(double mlow, double mhigh)
 {
 	double m;
 	double m1=0.08,m2=0.5;
@@ -168,6 +222,71 @@ double make_mass(double mlow, double mhigh)
 		}
 	} while (temp > upper*randomz());
 	return m;
+}
+
+static int sections;
+static double *xs;
+static double *ns;
+
+void make_mass_init(int s, double *a, double *m0)
+{
+	/* s sections, ml = m0[0], mh = m0[s], m0[i] < m0[i+1] */
+	/* f(m)dm = ki * m^(-ai) , m0[i] < m < m0[i+1], i=0,1,...,s-1 */
+	double m=0;
+	double norm;
+	double norm0[s];
+	double a1;
+	double x0[s];
+	double x;
+	double ki;
+	int i;
+	a1 = 1 - a[0];
+	ki = 1;
+	norm0[0] = (pow(m0[1],a1) - pow(m0[0],a1)) / a1; /* norm0[0] *= ki */
+	for (i=0;i<s;++i) {
+		a1 = 1 - a[i];
+		ki *= pow(m0[i],a[i]-a[i-1]);
+		norm0[i] = ki * (pow(m0[i+1],a1) - pow(m0[i],a1)) / a1;
+	}
+	
+	norm = 0;
+	for (i=0;i<s;++i) norm += norm0[i];
+	x0[i] = norm0[0]/norm;
+	for (i=1;i<s;++i) x0[i] = x0[i-1] + norm0[i]/norm;
+	
+	xs = (double*) malloc(s*sizeof(double));
+	ns = (double*) malloc(s*sizeof(double));
+
+	for (i=0;i<s;++i) {
+		xs[i] = x0[i];
+		if (a[i] == 1) {
+			ns[i] = log(m0[i+1]/m0[i]);
+		} else {
+			ns[i] = pow(m0[i+1]/m0[i],-a[i]+1) - 1;
+		}
+	}
+}
+
+double choose_mass(double *m0, double *a)
+{
+	int i;
+	int s=sections;
+	double x;
+	double m;
+	x = randomz();
+	for (i=0;i<s;++i) {
+		if (x < xs[i]) {
+			m = general_power_law2(m0[i],m0[i+1],a[i],ns[i]);
+			break;
+		}
+	}
+	return m;
+}
+
+void make_mass_fin(void)
+{
+	free(xs);
+	free(ns);
 }
 
 void generate_mass(int N, double mlow, double mhigh, double *mass)
