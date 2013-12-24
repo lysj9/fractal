@@ -181,7 +181,7 @@ int main(int argc, char *argv[])
 	if (nbin > 0) {
 		// position in [pc], velocity in [m/s/VSC]
 		// position and velocity are in binary frame
-		generate_binaries(star_x,N_star,nbin,mlow,mhigh,pairing_type);
+		generate_binaries(star_x,N_star,nbin,nsimf,ms,as,pairing_type);
 	}
 
 	t1 = get_wtime();

@@ -17,7 +17,7 @@ double hq(double q0, double q1)
 }
 
 static
-void RP(struct star *x, int n, int *nbin, int s, double *ms, double *as)
+void RP(struct star *x, int n, int *nbin, int nsimf, double *ms, double *as)
 {
 	int i,j;
 	int nb,ns;
@@ -25,7 +25,7 @@ void RP(struct star *x, int n, int *nbin, int s, double *ms, double *as)
 	nb = *nbin;
 	ns = n - nb;
 	m2 = (double*) malloc(nb*sizeof(double));
-	gen_IMF(nb,m2,s,ms,as);
+	gen_IMF(nb,m2,nsimf,ms,as);
 	/*
 	gen_kroupa_IMF(nb,m2,ml,mh);
 	*/
@@ -40,18 +40,18 @@ void RP(struct star *x, int n, int *nbin, int s, double *ms, double *as)
 }
 
 static
-void PCRP(struct star *x, int n, int *nbin, int s, double *ms, double *as)
+void PCRP(struct star *x, int n, int *nbin, int nsimf, double *ms, double *as)
 {
 	int i,j,k;
 	int nb,ns;
 	double m1,m2;
-	double l_ms[s+1];
+	double l_ms[nsimf+1];
 	nb = *nbin;
 	ns = n - nb;
 	for (i=0;i<nb;++i) {
 		j  = 2*i + (ns - i)*randomz();
 		m1 = x[j].m;
-		for (k=0;k<s;++k) {
+		for (k=0;k<nsimf;++k) {
 			l_ms[k] = ms[k];
 			if (m1 <= ms[k]) {
 				l_ms[k] = m1;
@@ -143,32 +143,32 @@ void PCP_III(struct star *x, int n, int *nbin, double ml)
 }
 
 static
-void SCP_I(struct star *x, int n, int *nbin, int s, double *ms, double *as)
+void SCP_I(struct star *x, int n, int *nbin, int nsimf, double *ms, double *as)
 {
 	int i,j,k;
 	int nb,ns;
 	double Mc,m1,m2;
 	double q;
-	double l_ms[s+1];
-	double xs[s];
-	double ns[s];
+	double l_ms[nsimf+1];
+	double xprbs[nsimf];
+	double norms[nsimf];
 	nb = *nbin;
 	ns = n - nb;
 	l_ms[0] = 2*ms[0];
-	if (l_ms[0] >= ms[s]) {
+	if (l_ms[0] >= ms[nsimf]) {
 		fprintf(stderr,"mh should > 2*ml in SCP model\n");
 		exit(0);
 	}
-	for (k=s;k>0;--k) {
+	for (k=nsimf;k>0;--k) {
 		l_ms[k] = ms[k];
 		if (l_ms[0] >= ms[k]) {
 			l_ms[k] = l_ms[0];
 			break;
 		}
 	}
-	make_mass_init(k,l_ms+k,as+k,xs,ns);
+	make_mass_init(k,l_ms+k,as+k,xprbs,norms);
 	for (i=0;i<nb;++i) {
-		Mc = get_mass2(k,l_ms+k,as+k,xs,ns);
+		Mc = get_mass2(k,l_ms+k,as+k,xprbs,norms);
 		/*
 		Mc = get_mass(k,l_ms+k,as+k);
 		*/
@@ -185,36 +185,36 @@ void SCP_I(struct star *x, int n, int *nbin, int s, double *ms, double *as)
 }
 
 static
-void SCP_II(struct star *x, int n, int *nbin, int s, double *ms, double *as)
+void SCP_II(struct star *x, int n, int *nbin, int nsimf, double *ms, double *as)
 {
-	int i,j;
+	int i,j,k;
 	int nb,ns;
 	double Mc,m1,m2;
 	double q,q0;
-	double l_ms[s+1];
-	double xs[s];
-	double ns[s];
+	double l_ms[nsimf+1];
+	double xprbs[nsimf];
+	double norms[nsimf];
 	nb = *nbin;
 	ns = n - nb;
 	l_ms[0] = 2*ms[0];
-	if (l_ms[0] >= ms[s]) {
+	if (l_ms[0] >= ms[nsimf]) {
 		fprintf(stderr,"mh should > 2*ml in SCP model\n");
 		exit(0);
 	}
-	for (k=s;k>0;--k) {
+	for (k=nsimf;k>0;--k) {
 		l_ms[k] = ms[k];
 		if (l_ms[0] >= ms[k]) {
 			l_ms[k] = l_ms[0];
 			break;
 		}
 	}
-	make_mass_init(k,l_ms+k,as+k,xs,ns);
+	make_mass_init(k,l_ms+k,as+k,xprbs,norms);
 	for (i=0;i<nb;++i) {
-		Mc = get_mass2(k,l_ms+k,as+k,xs,ns);
+		Mc = get_mass2(k,l_ms+k,as+k,xprbs,norms);
 		/*
 		Mc = get_mass(k,l_ms+k,as+k);
 		*/
-		q0 = ml/(Mc-ml);
+		q0 = ms[0]/(Mc-ms[0]);
 		q  = randomz();
 		if (q < q0) {
 			nb--;
@@ -233,36 +233,36 @@ void SCP_II(struct star *x, int n, int *nbin, int s, double *ms, double *as)
 }
 
 static
-void SCP_III(struct star *x, int n, int *nbin, int s, double *ms, double *as)
+void SCP_III(struct star *x, int n, int *nbin, int nsimf, double *ms, double *as)
 {
-	int i,j;
+	int i,j,k;
 	int nb,ns;
 	double Mc,m1,m2;
 	double q,q0;
-	double l_ms[s+1];
-	double xs[s];
-	double ns[s];
+	double l_ms[nsimf+1];
+	double xprbs[nsimf];
+	double norms[nsimf];
 	nb = *nbin;
 	ns = n - nb;
 	l_ms[0] = 2*ms[0];
-	if (l_ms[0] >= ms[s]) {
+	if (l_ms[0] >= ms[nsimf]) {
 		fprintf(stderr,"mh should > 2*ml in SCP model\n");
 		exit(0);
 	}
-	for (k=s;k>0;--k) {
+	for (k=nsimf;k>0;--k) {
 		l_ms[k] = ms[k];
 		if (l_ms[0] >= ms[k]) {
 			l_ms[k] = l_ms[0];
 			break;
 		}
 	}
-	make_mass_init(k,l_ms+k,as+k,xs,ns);
+	make_mass_init(k,l_ms+k,as+k,xprbs,norms);
 	for (i=0;i<nb;++i) {
-		Mc = get_mass2(k,l_ms+k,as+k,xs,ns);
+		Mc = get_mass2(k,l_ms+k,as+k,xprbs,norms);
 		/*
 		Mc = get_mass(k,l_ms+k,as+k);
 		*/
-		q0 = ml/(Mc-ml);
+		q0 = ms[0]/(Mc-ms[0]);
 		q  = hq(q0,1);
 		j  = 2*i + (ns - i)*randomz();
 		SWAP(x[2*i],x[j],struct star);
@@ -275,11 +275,11 @@ void SCP_III(struct star *x, int n, int *nbin, int s, double *ms, double *as)
 	}
 }
 
-void binary_pairing(struct star *x, int n, int *nbin, int s, double *ms, double *as, int pairing_type)
+void binary_pairing(struct star *x, int n, int *nbin, int nsimf, double *ms, double *as, int pairing_type)
 {
 	if (pairing_type==1) {
 		/* PCRP */
-		PCRP(x,n,nbin,s,ms,as);
+		PCRP(x,n,nbin,nsimf,ms,as);
 	} else if (pairing_type == 2) {
 		/* PCP-I */
 		PCP_I(x,n,nbin);
@@ -291,15 +291,15 @@ void binary_pairing(struct star *x, int n, int *nbin, int s, double *ms, double 
 		PCP_III(x,n,nbin,ms[0]);
 	} else if (pairing_type == 5) {
 		/* SCP-I */
-		SCP_I(x,n,nbin,s,ms,as);
+		SCP_I(x,n,nbin,nsimf,ms,as);
 	} else if (pairing_type == 6) {
 		/* SCP-II */
-		SCP_II(x,n,nbin,s,ms,as);
+		SCP_II(x,n,nbin,nsimf,ms,as);
 	} else if (pairing_type == 7) {
 		/* SCP-III */
-		SCP_III(x,n,nbin,s,ms,as);
+		SCP_III(x,n,nbin,nsimf,ms,as);
 	} else {
 		/* RP */
-		RP(x,n,nbin,s,ms,as);
+		RP(x,n,nbin,nsimf,ms,as);
 	}
 }

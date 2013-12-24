@@ -72,7 +72,7 @@ static double orbital_kepler(double M_orbit, double e)
 	return E_orbit;
 }
 
-void generate_binaries(struct star *star_x, int N_star, int nbin, double ml, double mh, int pairing_type)
+void generate_binaries(struct star *star_x, int N_star, int nbin, int nsimf, double *ms, double *as, int pairing_type)
 {
 	int i,j;
 	double a,P,e;
@@ -91,7 +91,7 @@ void generate_binaries(struct star *star_x, int N_star, int nbin, double ml, dou
 	double m1,m2,m_cm;
 //	double rvir;
 
-	binary_pairing(star_x,N_star,&nbin,ml,mh,pairing_type);
+	binary_pairing(star_x,N_star,&nbin,nsimf,ms,as,pairing_type);
 
 	for (i=0;i<nbin;++i) {
 
