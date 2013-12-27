@@ -5,13 +5,14 @@
 #include "constant.h"
 
 #include "get_wtime.h"
+#include "make_mass.h"
 #include "mempool.h"
 #include "randomz.h"
 #include "randqueue.h"
 
 #define PART 8
 
-void fractal(int StarNum, double D, double mlow, double mhigh, struct star *star_x, double rs_estimated)
+void fractal(int StarNum, struct star *star_x, double D, int nsimf, double *ms, double *as, double rs_estimated)
 {
 	unsigned long int LEN = sizeof(struct node);
 #ifdef USE_MEMPOOL
@@ -23,50 +24,10 @@ void fractal(int StarNum, double D, double mlow, double mhigh, struct star *star
 	fprintf(stderr,"The possibility of a sub-node matures is %lf\n",mp);
 
 	double m;
-	double temp;
 
-	/* Kroupa's IMF, m_low>=0.08, m_high>0.5, m_break=0.5 */
-	int sections=2;
-	double alpha[sections];
-	double mb[sections+1];
-	double xb;
-	double norm;
-	double norm0[sections];
-	double a1[sections];
-	alpha[0] = 1.3;
-	alpha[1] = 2.3;
-	a1[0] = 1 - alpha[0];
-	a1[1] = 1 - alpha[1];
-	mb[0] = mlow;
-	mb[1] = 0.5;
-	mb[2] = mhigh;
-	/* check mass range */
-	if (mlow > mhigh) {
-		fprintf(stderr,"lower limit of mass %lf larger than the upper limit %lf!\n",mlow,mhigh);
-		fprintf(stderr,"swap these two values...\n");
-		temp = mlow;
-		mlow = mhigh;
-		mhigh = temp;
-	}
-	if (mlow < 0.08) {
-		fprintf(stderr,"lower limit of mass should >= 0.08 M_sun!\n");
-		exit(-1);
-	}
-	if (mhigh < 0.5) {
-		fprintf(stderr,"upper limit of mass should > 0.5 M_sun!\n");
-		exit(-1);
-	}
-
-	/* normalize and get weight for these two parts - xb */
-	norm0[0] = -(pow(mb[0]/mb[1], a1[0]) - 1) / a1[0];
-	norm0[1] =  (pow(mb[2]/mb[1], a1[1]) - 1) / a1[1];
-	norm = 1./(norm0[0] + norm0[1]);
-	xb = norm0[0]*norm;
-	/* each part of IMF follows pow law distribution */
-	/* normalization factor */
-	double pow_norm1,pow_norm2;
-	pow_norm1 = pow(mb[1]/mb[0], a1[0]) - 1;
-	pow_norm2 = pow(mb[2]/mb[1], a1[1]) - 1;
+	double xs[nsimf];
+	double ns[nsimf];
+	make_mass_init(nsimf,ms,as,xs,ns);
 
 	int numc=1;
 	struct node *child,*parent,*headc,*headp;
@@ -102,7 +63,6 @@ void fractal(int StarNum, double D, double mlow, double mhigh, struct star *star
 	}
 #endif
 	headp->next = NULL;
-
 
 	int i,j;
 	int generation=0;
@@ -158,16 +118,7 @@ void fractal(int StarNum, double D, double mlow, double mhigh, struct star *star
 				if (randomz() < mp){
 
 					// generate the mass of sub-nodes:
-					m = p_IMF(s,ml,mh);
-					/*
-					if (randomz() < xb) {
-						m = mb[0] * pow(pow_norm1*randomz()+1, 1/a1[0]);
-					} else {
-						m = mb[1] * pow(pow_norm2*randomz()+1, 1/a1[1]);
-					}
-					*/
-					// m = makemass(mlow,mhigh);
-						//	may be used some day...
+					m = get_mass2(nsimf,ms,as,xs,ns);
 
 					// generate the position of sub-nodes:
 					x = parent->x[0];

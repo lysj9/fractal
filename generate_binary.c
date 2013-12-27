@@ -8,7 +8,8 @@
 #include "make_mass.h"
 #include "randomz.h"
 
-static double eigenevolution(double *m1, double *m2, double *P, double *e)
+static
+double eigenevolution(double *m1, double *m2, double *P, double *e)
 {
 	double R_peri;
 	double lambda=28,chi=0.75,rou,rou2;
@@ -46,7 +47,8 @@ static double eigenevolution(double *m1, double *m2, double *P, double *e)
 	return mtot_fin;
 }
 
-static double orbital_kepler(double M_orbit, double e)
+static
+double orbital_kepler(double M_orbit, double e)
 {
 	double f,df,dx,xacc;
 	double E_orbit=M_orbit;

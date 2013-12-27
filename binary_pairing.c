@@ -26,9 +26,6 @@ void RP(struct star *x, int n, int *nbin, int nsimf, double *ms, double *as)
 	ns = n - nb;
 	m2 = (double*) malloc(nb*sizeof(double));
 	gen_IMF(nb,m2,nsimf,ms,as);
-	/*
-	gen_kroupa_IMF(nb,m2,ml,mh);
-	*/
 	for (i=0;i<nb;++i) {
 		j  = 2*i + (ns - i)*randomz();
 		SWAP(x[2*i],x[j],struct star);
@@ -63,9 +60,6 @@ void PCRP(struct star *x, int n, int *nbin, int nsimf, double *ms, double *as)
 		} else {
 			m2 = get_mass(k,l_ms,as);
 		}
-		/*
-		m2 = kroupa_IMF(ms[0],m1);
-		*/
 		SWAP(x[2*i],x[j],struct star);
 		x[ns+i] = x[2*i+1];
 		x[n +i] = x[2*i];
@@ -169,9 +163,6 @@ void SCP_I(struct star *x, int n, int *nbin, int nsimf, double *ms, double *as)
 	make_mass_init(k,l_ms+k,as+k,xprbs,norms);
 	for (i=0;i<nb;++i) {
 		Mc = get_mass2(k,l_ms+k,as+k,xprbs,norms);
-		/*
-		Mc = get_mass(k,l_ms+k,as+k);
-		*/
 		q  = randomz();
 		j  = 2*i + (ns - i)*randomz();
 		SWAP(x[2*i],x[j],struct star);
@@ -211,9 +202,6 @@ void SCP_II(struct star *x, int n, int *nbin, int nsimf, double *ms, double *as)
 	make_mass_init(k,l_ms+k,as+k,xprbs,norms);
 	for (i=0;i<nb;++i) {
 		Mc = get_mass2(k,l_ms+k,as+k,xprbs,norms);
-		/*
-		Mc = get_mass(k,l_ms+k,as+k);
-		*/
 		q0 = ms[0]/(Mc-ms[0]);
 		q  = randomz();
 		if (q < q0) {
@@ -259,9 +247,6 @@ void SCP_III(struct star *x, int n, int *nbin, int nsimf, double *ms, double *as
 	make_mass_init(k,l_ms+k,as+k,xprbs,norms);
 	for (i=0;i<nb;++i) {
 		Mc = get_mass2(k,l_ms+k,as+k,xprbs,norms);
-		/*
-		Mc = get_mass(k,l_ms+k,as+k);
-		*/
 		q0 = ms[0]/(Mc-ms[0]);
 		q  = hq(q0,1);
 		j  = 2*i + (ns - i)*randomz();

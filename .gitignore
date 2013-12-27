@@ -1,5 +1,6 @@
 *.o
 *.d
+*.mod
 *.obj
 *.exe
 a.out

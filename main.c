@@ -15,6 +15,8 @@
 #include "scale.h"
 #include "get_wtime.h"
 
+#define MAX_NS_IMF 10
+
 int main(int argc, char *argv[])
 {
 	double t_start,t_end; 	// program time used
@@ -23,7 +25,7 @@ int main(int argc, char *argv[])
 	double t0,t1; 			// function time used
 	double tc;
 
-	int i;
+	int i,j;
 
 	int seed=0; // random seed (=0 choose from system time)
 	int N_star=1000; // total star number
@@ -50,7 +52,10 @@ int main(int argc, char *argv[])
 	FILE *FP=NULL;
 	char *outname="a.input";
 	char *outlog="a.log";
-	double mlow=0.08,mhigh=50.0; // mass range
+	double mlow=0.08;
+	double mhigh=100.0; // mass range
+	double ms[MAX_NS_IMF+1] = {0.08,0.5,100.0};
+	double as[MAX_NS_IMF] = {1.3,2.3,0.0};
 	double D=2.0; // fractal dimension
 	double q=0.5; // virial ratio
 	double Mtot;
@@ -58,8 +63,10 @@ int main(int argc, char *argv[])
 //	double dtadj=1.0;
 //	double deltat=1.0;
 	int pairing_type=4; // binary pairing type, PCP-III by default
+	int nsimf=0; // number of IMF pow-law sections
 	
 	char dic_str[]="s1:n1:r1:R1:t2:f1:l1:u1:D1:b1:B1:q1:p1";
+	char long_dic_str[]="help,0:mf,2";
 	char arg_name[8];
 	char *arg_str[16];
 //	char param_str[]="s1n1r1R1t2f1u1l1D1b1B1q1A1O1";
@@ -71,7 +78,7 @@ int main(int argc, char *argv[])
 /*	******** ******** ******** ******** ******** ******** ********	*/
 /* input parameters treatment */
 /*	******** ******** ******** ******** ******** ******** ********	*/
-	while ((c=getopt(argc,argv,arg_name,arg_str,dic_str,"",sizeof(arg_name))) != -1) {
+	while ((c=getopt(argc,argv,arg_name,arg_str,dic_str,long_dic_str,sizeof(arg_name))) != -1) {
 		if (c==0) {
 			if (strcmp(arg_name,"s") == 0) {
 				seed = atoi(arg_str[0]);
@@ -105,6 +112,18 @@ int main(int argc, char *argv[])
 				q = atof(arg_str[0]);
 			} else if (strcmp(arg_name,"p") == 0) {
 				pairing_type = atoi(arg_str[0]);
+			} else if (strcmp(arg_name,"mf") == 0) {
+				if (nsimf < MAX_NS_IMF) {
+					ms[nsimf] = atof(arg_str[0]);
+					as[nsimf] = atof(arg_str[1]);
+					nsimf++;
+				} else {
+					fprintf(stderr,"IMF sections should <= %d\n",MAX_NS_IMF);
+					exit(1);
+				}
+			} else if (strcmp(arg_name,"help") == 0) {
+				printf("show help:\n");
+				return 1;
 			} else {
 				//printf("%d %s\n",c,arg_name);
 				printf("show help:\n");
@@ -116,6 +135,7 @@ int main(int argc, char *argv[])
 			exit(1);
 		}
 	}
+
 	if (!FP) {
 		FP=fopen("fort.10","w");
 		if (NULL==FP){
@@ -152,11 +172,48 @@ int main(int argc, char *argv[])
 		rs_estimated=r_virial/rvir_nbody;
 	}
 	// individual binaries + single stars + c.m. binaries
-	struct star *star_x = (struct star*) malloc ( (N_star+nbin)*sizeof(struct star) );
+	struct star *star_x = (struct star*) malloc ((N_star+nbin)*sizeof(struct star));
 	if (NULL==star_x) {
 		fprintf(stderr,"malloc *star_x error\n");
 		exit(-1);
 	}
+
+	/* IMF */
+	if (!nsimf) {
+		nsimf = 2;
+	}
+	for (i=nsimf-1;i>0;--i) {
+		if (mhigh > ms[i]) {
+			break;
+		}
+	}
+	nsimf = i + 1;
+	ms[nsimf] = mhigh;
+
+	if (mlow < ms[0]) {
+		mlow = ms[0];
+	} else {
+		for (i=1;i<nsimf;++i) {
+			if (mlow < ms[i]) {
+				break;
+			}
+		}
+		nsimf = nsimf - i + 1;
+		ms[0] = mlow;
+		if (i>1) {
+			for (j=1;j<nsimf+1;++j) {
+				ms[j] = ms[j+i-1];
+			}
+			for (j=0;j<nsimf;++j) {
+				as[j] = as[j+i-1];
+			}
+		}
+	}
+	/*
+	for (i=0;i<nsimf;++i) {
+		fprintf(stderr,"%lf -- %lf : %lf\n",ms[i],ms[i+1],as[i]);
+	}
+	*/
 
 	randomz_seed(seed);
 /*	******** ******** ******** ******** ******** ******** ********	*/
@@ -166,7 +223,7 @@ int main(int argc, char *argv[])
 /*	******** ******** ******** ******** ******** ******** ********	*/
 	t0 = get_wtime();
 	N_node = N_star - nbin;
-	fractal(N_node,D,mlow,mhigh,star_x,rs_estimated);
+	fractal(N_node,star_x,D,nsimf,ms,as,rs_estimated);
 
 	t1 = get_wtime();
 	tc = t1 - t0;

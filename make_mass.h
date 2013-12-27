@@ -2,7 +2,7 @@
 #define _MAKE_MASS_H_
 
 double general_power_law(double ml, double mh, double alpha);
-double general_power_law2(double ml, double mh, double alpha, double norm);
+double general_power_law2(double ml, double alpha, double norm);
 double get_mass(int s, double *ms, double *as);
 void make_mass_init(int s, double *ms, double *as, double *xs, double *ns);
 double get_mass2(int s, double *ms, double *as, double *xs, double *ns);
