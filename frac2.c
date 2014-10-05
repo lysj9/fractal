@@ -12,7 +12,7 @@
 
 #define PART 8
 
-void fractal2(int StarNum, struct star *star_x, double D, int depth, int nsimf, double *ms, double *as, double rs_estimated)
+void fractal2(int StarNum, int n_sub, struct star *star_x, double D, int nsimf, double *ms, double *as, double rs_estimated)
 {
 	unsigned long int LEN = sizeof(struct node);
 #ifdef USE_MEMPOOL
@@ -84,7 +84,12 @@ void fractal2(int StarNum, struct star *star_x, double D, int depth, int nsimf, 
 	rnoise = 0.1;
 	v0 = 1.0;
 	vnoise = 1.0;
-	for (generation=0;generation<depth;++generation) {
+
+	int n_cr;
+	n_cr = 100*sqrt(StarNum);
+//	n_cr = 100*n_sub;
+
+	while (numc < n_cr) {
 		parent = headp;
 		child  = headc;
 		while (NULL != child->next) {
@@ -215,14 +220,6 @@ void fractal2(int StarNum, struct star *star_x, double D, int depth, int nsimf, 
 	fprintf(stderr,"%d generations, %d star candidates\n",generation,numc);
 	fprintf(stderr,"delta, rnoise, vnoise: %lf %lf %lf\n",delta,rnoise,vnoise);
 
-	for (i=0;i<numc;++i) {
-		fi = gaussrand(ave,sigma);
-		normalize(fi);
-	}
-	for (i=0;i<numc;++i) {
-		fi = fi;
-		generate_king();
-	}
 	struct star *all_star;
 	child = headc->next;
 	all_star = (struct star*) malloc (numc*sizeof(struct star));
@@ -268,6 +265,17 @@ void fractal2(int StarNum, struct star *star_x, double D, int depth, int nsimf, 
 	for (i=0;i<StarNum;++i) {
 		star_x[i] = all_star[ sidx[i] ];
 	}
+
+	randqueue(numc,idx,n_sub,sidx);
+//	randqueue2(numc,idx,StarNum,sidx,all_star,eps);
+
+	for (i=0;i<n_sub;++i) {
+		make_king(nstar,x);
+		for (j=0;j<nstar;++j) {
+			star_x[idx] = x[j] + xs[i];
+		}
+	}
+
 	t1 = get_wtime();
 	tc = t1 - t0;
 	fprintf(stderr,"restrict randomly choosing use %lf ms, %lf s\n",1.e3*tc,tc);
