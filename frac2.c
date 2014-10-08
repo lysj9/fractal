@@ -12,6 +12,8 @@
 
 #define PART 8
 
+void make_king(int nstar, struct star *x);
+
 void fractal2(int StarNum, int n_sub, struct star *star_x, double D, int nsimf, double *ms, double *as, double rs_estimated)
 {
 	unsigned long int LEN = sizeof(struct node);
@@ -223,11 +225,11 @@ void fractal2(int StarNum, int n_sub, struct star *star_x, double D, int nsimf, 
 	struct star *all_star;
 	child = headc->next;
 	all_star = (struct star*) malloc (numc*sizeof(struct star));
-	if (NULL == all_star){
+	if (NULL == all_star) {
 		fprintf(stderr,"fractal: malloc all_star failed!\n");
 		exit(-1);
 	}
-	for (i=0;i<numc;++i){
+	for (i=0;i<numc;++i) {
 		all_star[i].m  = child->m;
 
 		all_star[i].x[0] = child->x[0];
@@ -254,25 +256,48 @@ void fractal2(int StarNum, int n_sub, struct star *star_x, double D, int nsimf, 
 		idx[i] = i;
 		sidx[i] = i;
 	}
-	fprintf(stderr,"Choose %d particles from %d leaves randomly\n",StarNum,numc);
+//	fprintf(stderr,"Choose %d particles from %d leaves randomly\n",StarNum,numc);
+	fprintf(stderr,"Choose %d particles from %d leaves randomly\n",n_sub,numc);
 	double t0,t1;
 	double tc;
 	t0 = get_wtime();
-//	double eps=5e-4;
-	double eps=50./206265*rs_estimated; // minimum separation set to 50 AU
-//	randqueue(numc,idx,StarNum,sidx);
-	randqueue2(numc,idx,StarNum,sidx,all_star,eps);
-	for (i=0;i<StarNum;++i) {
-		star_x[i] = all_star[ sidx[i] ];
-	}
 
-	randqueue(numc,idx,n_sub,sidx);
+//	randqueue(numc,idx,StarNum,sidx);
+//	double eps=5e-4;
+//	double eps=50./206265*rs_estimated; // minimum separation set to 50 AU
 //	randqueue2(numc,idx,StarNum,sidx,all_star,eps);
 
+	randqueue(numc,idx,n_sub,sidx);
+
+	struct star *sub_centre_x;
+	sub_centre_x = (struct star*) malloc (n_sub*sizeof(struct star));
+	if (NULL == sub_centre_x) {
+		fprintf(stderr,"fractal: malloc sub_centre_x failed!\n");
+		exit(-1);
+	}
+	randqueue(numc,idx,n_sub,sidx);
 	for (i=0;i<n_sub;++i) {
-		make_king(nstar,x);
+		sub_centre_x[i] = all_star[ sidx[i] ];
+	}
+
+	int nstar=1000;
+	struct star *x_sub;
+	x_sub = (struct star*) malloc (nstar*sizeof(struct star));
+	if (NULL == x_sub) {
+		fprintf(stderr,"fractal: malloc x_sub failed!\n");
+		exit(-1);
+	}
+
+	for (i=0;i<n_sub;++i) {
+		make_king(nstar,x_sub);
 		for (j=0;j<nstar;++j) {
-			star_x[idx] = x[j] + xs[i];
+			star_x[i].m = x_sub[j].m;
+			star_x[i].x[0] = x_sub[j].x[0] + sub_centre_x[i].x[0];
+			star_x[i].x[1] = x_sub[j].x[1] + sub_centre_x[i].x[1];
+			star_x[i].x[2] = x_sub[j].x[2] + sub_centre_x[i].x[2];
+			star_x[i].x[3] = x_sub[j].x[3] + sub_centre_x[i].x[3];
+			star_x[i].x[4] = x_sub[j].x[4] + sub_centre_x[i].x[4];
+			star_x[i].x[5] = x_sub[j].x[5] + sub_centre_x[i].x[5];
 		}
 	}
 
@@ -282,6 +307,7 @@ void fractal2(int StarNum, int n_sub, struct star *star_x, double D, int nsimf, 
 	fprintf(stderr,"...random choose finished!\n");
 
 	free(all_star);
+	free(sub_centre_x);
 	free(idx);
 	free(sidx);
 
@@ -306,4 +332,13 @@ void fractal2(int StarNum, int n_sub, struct star *star_x, double D, int nsimf, 
 #endif
 
 	return;
+}
+
+void make_king(int nstar, struct star *x)
+{
+	int i;
+	for (i=0;i<nstar;++i) {
+		scanf("%lf %lf %lf %lf %lf %lf %lf",\
+				&x->m,&x->x[0],&x->x[1],&x->x[2],&x->x[3],&x->x[4],&x->x[5]);
+	}
 }
