@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <string.h>
 #include "type.h"
 #include "constant.h"
 
@@ -12,7 +13,7 @@
 
 #define PART 8
 
-void make_king(int nstar, struct star *x);
+void make_king(int nstar, struct star *x, FILE *fp);
 
 void fractal2(int StarNum, int n_sub, struct star *star_x, double D, int nsimf, double *ms, double *as, double rs_estimated)
 {
@@ -288,8 +289,13 @@ void fractal2(int StarNum, int n_sub, struct star *star_x, double D, int nsimf, 
 		exit(-1);
 	}
 
+	FILE *fp;
+	char fname[256];
+
 	for (i=0;i<n_sub;++i) {
-		make_king(nstar,x_sub);
+		sprintf(fname,"temp/\%d.txt",i+1);
+		fp = fopen(fname,"r");
+		make_king(nstar,x_sub,fp);
 		for (j=0;j<nstar;++j) {
 			star_x[i].m = x_sub[j].m;
 			star_x[i].x[0] = x_sub[j].x[0] + sub_centre_x[i].x[0];
@@ -299,6 +305,7 @@ void fractal2(int StarNum, int n_sub, struct star *star_x, double D, int nsimf, 
 			star_x[i].x[4] = x_sub[j].x[4] + sub_centre_x[i].x[4];
 			star_x[i].x[5] = x_sub[j].x[5] + sub_centre_x[i].x[5];
 		}
+		fclose(fp);
 	}
 
 	t1 = get_wtime();
@@ -334,11 +341,11 @@ void fractal2(int StarNum, int n_sub, struct star *star_x, double D, int nsimf, 
 	return;
 }
 
-void make_king(int nstar, struct star *x)
+void make_king(int nstar, struct star *x, FILE *fp)
 {
 	int i;
 	for (i=0;i<nstar;++i) {
-		scanf("%lf %lf %lf %lf %lf %lf %lf",\
+		fscanf(fp,"%lf %lf %lf %lf %lf %lf %lf",\
 				&x->m,&x->x[0],&x->x[1],&x->x[2],&x->x[3],&x->x[4],&x->x[5]);
 	}
 }
