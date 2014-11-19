@@ -2,7 +2,7 @@ CC 		= 	gcc
 
 EXEC 	= 	frac.exe
 
-C_SOURCES 	= 	main.c binary_pairing.c frac.c generate_binary.c get_wtime.c getopt.c make_mass.c mempool.c output.c quick_sort.c quick_select.c randomz.c randqueue.c scale.c
+C_SOURCES 	= 	main.c binary_pairing.c frac.c frac2.c generate_binary.c get_wtime.c getopt.c make_mass.c mempool.c output.c quick_sort.c quick_select.c randomz.c randqueue.c scale.c
 #C_OBJS 		= 	$(patsubst %.c, %.o, $(C_SOURCES))
 C_OBJS 		= 	$(C_SOURCES:%.c=%.o)
 C_DEPS 		= 	$(C_SOURCES:%.c=%.d)

@@ -7,6 +7,7 @@
 #include "constant.h"
 
 #include "frac.h"
+#include "frac2.h"
 #include "generate_binary.h"
 #include "getopt.h"
 #include "make_mass.h"
@@ -224,6 +225,8 @@ int main(int argc, char *argv[])
 	t0 = get_wtime();
 	N_node = N_star - nbin;
 	fractal(N_node,star_x,D,nsimf,ms,as,rs_estimated);
+//	fractal2(N_node,10,star_x,D,nsimf,ms,as,rs_estimated);
+	printf("%lf %lf %lf\n",star_x[1].m,star_x[1].x[0],star_x[1].x[3]);
 
 	t1 = get_wtime();
 	tc = t1 - t0;
@@ -240,6 +243,7 @@ int main(int argc, char *argv[])
 		// position and velocity are in binary frame
 		generate_binaries(star_x,N_star,nbin,nsimf,ms,as,pairing_type);
 	}
+	printf("%lf %lf %lf\n",star_x[1].m,star_x[1].x[0],star_x[1].x[3]);
 
 	t1 = get_wtime();
 	tc = t1 - t0;
