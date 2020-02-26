@@ -290,8 +290,8 @@ void gen_IMF(int n, double *m, int s, double *ms, double *as)
 		}
 	}
 
-	x = randomz();
 	for (j=0;j<n;++j) {
+		x = randomz();
 		for (i=0;i<s;++i) {
 			if (x < xs[i]) {
 				m[j] = general_power_law2(ms[i],as[i],ns[i]);
